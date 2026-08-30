@@ -1,0 +1,159 @@
+---
+import BoardHeader from './BoardHeader.astro';
+import Arrow from './Arrow.astro';
+import Thumb from './Thumb.astro';
+import { t, path, links, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const tr = t(lang);
+
+const gates = [
+  { id: 'A1', label: tr('gate.profile'), href: path(lang, '/about'), dir: 'down' as const },
+  { id: 'A2', label: tr('gate.projects'), href: path(lang, '/projects'), dir: 'down' as const },
+  { id: 'A3', label: tr('gate.contact'), href: path(lang, '/contact'), dir: 'out' as const },
+];
+---
+
+<main class="min-h-screen px-3 py-4 flex justify-center">
+  <div class="relative w-full max-w-[560px] md:max-w-[680px]">
+    <div class="border-4 border-panel-ink bg-panel shadow-[0_24px_60px_rgba(0,0,0,0.55)]">
+      <BoardHeader lang={lang} />
+
+      <!-- Overhead sign bar: the three destinations -->
+      <nav
+        aria-label="Primary"
+        class="grid grid-cols-1 gap-1 bg-panel-ink border-y-4 border-panel-ink"
+      >
+        {
+          gates.map((gate) => (
+            <a
+              href={gate.href}
+              class="group flex flex-col justify-between gap-4 bg-sign text-sign-ink hover:bg-sign-hover transition-colors px-5 py-6 sm:px-8 sm:py-10 min-h-[9rem] sm:min-h-[15rem]"
+            >
+              <span class="text-[0.65rem] sm:text-xs font-bold uppercase tracking-[0.35em] text-sign-ink/50">
+                Gate {gate.id}
+              </span>
+              <span class="flex items-start justify-between gap-4">
+                <span class="text-3xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tighter leading-[0.9]">
+                  {gate.label}
+                </span>
+                <Arrow
+                  dir={gate.dir}
+                  class={`w-9 h-9 sm:w-14 sm:h-14 shrink-0 transition-transform ${
+                    gate.dir === 'down'
+                      ? 'group-hover:translate-y-2'
+                      : 'group-hover:-translate-y-1 group-hover:translate-x-1'
+                  }`}
+                />
+              </span>
+            </a>
+          ))
+        }
+      </nav>
+
+      <!-- Illuminated light boxes -->
+      <div class="grid grid-cols-1 gap-1 bg-panel-ink">
+        {/* Current work is parked, not deleted: edortech carries the featured
+            box instead. Restore this when there are two things to show at once.
+            Commented as a JS block, not an HTML comment — the section's own
+            comments would close an HTML one early and let it render.
+
+        <section class="bg-panel text-panel-ink p-5 sm:p-10">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2">
+            <h2 class="text-3xl sm:text-5xl font-black uppercase tracking-tighter leading-none">
+              {tr('board.current')}
+            </h2>
+            <p class="max-w-xs text-sm sm:text-base font-semibold text-panel-ink/60">
+              {tr('board.current.lede')}
+            </p>
+          </div>
+
+          <a
+            href={path(lang, '/projects/edortech')}
+            class="panel-box group mt-6 sm:mt-10 flex gap-4 sm:gap-6 border-t-2 border-panel-ink pt-5 sm:pt-8 hover:bg-panel-ink/[0.04] transition-colors"
+          >
+            <Thumb label={tr('p.edortech.title')} class="w-28 sm:w-44 aspect-[4/3] shrink-0" />
+            <div class="min-w-0">
+              <p class="flex items-center gap-2 text-[0.6rem] sm:text-xs font-bold uppercase tracking-[0.25em] text-panel-ink/60">
+                <span class="inline-block w-2 h-2 bg-live"></span>
+                {tr('board.status.live')}
+              </p>
+              <h3 class="mt-2 text-xl sm:text-3xl font-black uppercase tracking-tight leading-none">
+                {tr('p.edortech.title')}
+              </h3>
+              <p class="mt-2 text-xs sm:text-sm font-bold uppercase tracking-wide text-panel-ink/60">
+                {tr('p.edortech.role')}
+              </p>
+              <p class="mt-3 hidden sm:block text-sm leading-relaxed text-panel-ink/80 line-clamp-3">
+                {tr('p.edortech.blurb')}
+              </p>
+              <p class="mt-3 sm:mt-4 flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-[0.2em]">
+                {tr('board.readCase')}
+                <Arrow dir="right" class="w-5 h-5 transition-transform group-hover:translate-x-2" />
+              </p>
+            </div>
+          </a>
+        </section>
+
+        */}
+
+        <!-- Featured project -->
+        <section class="bg-panel text-panel-ink p-5 sm:p-10 flex flex-col">
+          <h2 class="text-3xl sm:text-5xl font-black uppercase tracking-tighter leading-none">
+            {tr('board.featured')}
+          </h2>
+
+          <a
+            href={path(lang, '/projects/edortech')}
+            class="panel-box group mt-6 sm:mt-8 flex-1 flex flex-col border-t-2 border-panel-ink pt-5 sm:pt-8 hover:bg-panel-ink/[0.04] transition-colors"
+          >
+            <Thumb label={tr('p.edortech.title')} class="w-full aspect-[16/9]" />
+            <p class="mt-4 flex items-center gap-2 text-[0.6rem] sm:text-xs font-bold uppercase tracking-[0.25em] text-panel-ink/60">
+              <span class="inline-block w-2 h-2 bg-live"></span>
+              {tr('board.status.live')}
+            </p>
+            <h3 class="mt-2 text-xl sm:text-3xl font-black uppercase tracking-tight leading-none">
+              {tr('p.edortech.title')}
+            </h3>
+            <p class="mt-2 text-xs sm:text-sm font-bold uppercase tracking-wide text-panel-ink/60">
+              {tr('p.edortech.role')}
+            </p>
+            <!-- The whole box is the link; a "read the case study" line only
+                 repeats the arrow. -->
+            <p class="mt-auto pt-4 flex justify-end">
+              <Arrow dir="right" class="w-5 h-5 transition-transform group-hover:translate-x-2" />
+            </p>
+          </a>
+        </section>
+      </div>
+
+      <!-- Outbound gates -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 bg-panel-ink border-t-[3px] border-frame">
+        {
+          [
+            { label: tr('footer.gh'), href: links.github },
+            { label: tr('footer.li'), href: links.linkedin },
+          ].map((gate) => (
+            <a
+              href={gate.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group flex items-center justify-between gap-4 bg-sign text-sign-ink hover:bg-sign-hover transition-colors px-5 py-5 sm:px-10 sm:py-8"
+            >
+              <span class="text-2xl sm:text-4xl font-black uppercase tracking-tighter leading-none">
+                {gate.label}
+              </span>
+              <Arrow
+                dir="out"
+                class="w-8 h-8 sm:w-12 sm:h-12 shrink-0 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1"
+              />
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</main>

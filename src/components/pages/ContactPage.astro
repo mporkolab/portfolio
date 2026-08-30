@@ -1,0 +1,107 @@
+---
+import PageShell from '../PageShell.astro';
+import Arrow from '../Arrow.astro';
+import { t, type Lang } from '../../i18n/ui';
+import { CONTACT_EMAIL, CONTACT_ENDPOINT } from '../../lib/contact';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const tr = t(lang);
+
+const field = 'w-full border-2 border-panel-ink bg-transparent px-4 py-3 text-base sm:text-lg font-bold text-panel-ink placeholder:text-panel-ink/35 focus:outline-none focus:ring-4 focus:ring-panel-ink/20';
+const label = 'block text-[0.65rem] sm:text-xs font-bold uppercase tracking-[0.3em] text-panel-ink/60';
+---
+<PageShell lang={lang} title={tr('contact.title')} eyebrow="Gate A3">
+  <form
+    class="contact max-w-2xl"
+    data-endpoint={CONTACT_ENDPOINT}
+    data-mailto={CONTACT_EMAIL}
+    data-sending={tr('form.sending')}
+    data-sent={tr('form.sent')}
+    data-error={tr('form.error')}
+    novalidate
+  >
+    <div class="grid gap-5 sm:grid-cols-2">
+      <p class="m-0">
+        <label class={label} for="cf-name">{tr('form.name')}</label>
+        <input class={`mt-2 ${field}`} id="cf-name" name="name" type="text" required autocomplete="name" />
+      </p>
+      <p class="m-0">
+        <label class={label} for="cf-email">{tr('form.email')}</label>
+        <input class={`mt-2 ${field}`} id="cf-email" name="email" type="email" required autocomplete="email" />
+      </p>
+    </div>
+
+    <p class="mt-5 m-0">
+      <label class={label} for="cf-message">{tr('form.message')}</label>
+      <textarea class={`mt-2 ${field} min-h-40 resize-y`} id="cf-message" name="message" rows="6" required></textarea>
+    </p>
+
+    <button
+      type="submit"
+      class="group mt-6 flex w-full items-center justify-between gap-4 bg-sign px-5 py-4 sm:px-8 sm:py-5 text-lg sm:text-2xl font-black uppercase tracking-[0.15em] text-sign-ink hover:bg-sign-hover transition-colors disabled:opacity-60"
+    >
+      {tr('form.send')}
+      <Arrow dir="right" class="w-7 h-7 sm:w-9 sm:h-9 transition-transform group-hover:translate-x-2" />
+    </button>
+
+    <p class="contact__status mt-4 text-sm sm:text-base font-bold text-panel-ink/70" role="status" aria-live="polite"></p>
+  </form>
+
+  <p class="mt-10 border-t-2 border-panel-ink pt-6 text-xs sm:text-sm font-bold uppercase tracking-[0.25em] text-panel-ink/50">
+    {tr('contact.direct')}
+    <a class="ml-2 underline decoration-2 underline-offset-4 hover:text-panel-ink" href={`mailto:${CONTACT_EMAIL}`}>
+      {CONTACT_EMAIL}
+    </a>
+  </p>
+</PageShell>
+
+<script>
+  // Runs on every view transition too, so the handler is bound per page load.
+  const wire = () => {
+    const form = document.querySelector<HTMLFormElement>('.contact');
+    if (!form || form.dataset.wired) return;
+    form.dataset.wired = 'yes';
+
+    const status = form.querySelector<HTMLParagraphElement>('.contact__status')!;
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+
+      const data = new FormData(form);
+      const name = String(data.get('name') ?? '');
+      const email = String(data.get('email') ?? '');
+      const message = String(data.get('message') ?? '');
+      const endpoint = form.dataset.endpoint;
+
+      // No endpoint configured yet: hand the composed message to the visitor's
+      // own mail client rather than pretending it was sent.
+      if (!endpoint) {
+        const body = encodeURIComponent(`${message}\n\n— ${name} (${email})`);
+        window.location.href = `mailto:${form.dataset.mailto}?subject=${encodeURIComponent(name)}&body=${body}`;
+        return;
+      }
+
+      button.disabled = true;
+      status.textContent = form.dataset.sending ?? '';
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ name, email, message }),
+        });
+        if (!response.ok) throw new Error(String(response.status));
+        form.reset();
+        status.textContent = form.dataset.sent ?? '';
+      } catch {
+        status.textContent = form.dataset.error ?? '';
+      } finally {
+        button.disabled = false;
+      }
+    });
+  };
+
+  wire();
+  document.addEventListener('astro:page-load', wire);
+</script>

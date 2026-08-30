@@ -1,0 +1,262 @@
+@import "tailwindcss";
+
+@theme {
+  --color-sign: var(--sign);
+  --color-sign-hover: var(--sign-hover);
+  --color-sign-ink: var(--sign-ink);
+  --color-panel: var(--panel);
+  --color-panel-ink: var(--panel-ink);
+  --color-frame: var(--frame);
+  --color-ground: var(--ground);
+  --color-ground-ink: var(--ground-ink);
+  --color-live: var(--live);
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+:root {
+  /* THE SINGLE DIAL. Every signed surface in the project — plates, headers,
+     buttons, badges, the access card, the mobile board — takes its colour from
+     these four values and nothing else. Change --sign and the whole system
+     follows; --sign-ink is the type that sits on it, so the two must stay a
+     legible pair. The current yellow is sampled from the photographed sign
+     face, which is why the plates need no paint of their own. */
+  --sign: #ffd100;
+  --sign-hover: #ffe14d;
+  --sign-ink: #14161a;
+
+  /* Illuminated light-box panels: white sheets, black type. */
+  --panel: #ffffff;
+  --panel-ink: #0a0a0a;
+
+  /* Physical housing and the concourse behind it */
+  --frame: #111318;
+  --ground: #0d1117;
+  /* Type on the dark concourse itself, outside any panel. */
+  --ground-ink: #ffffff;
+  /* Status only — the one colour that must not be the sign colour. */
+  --live: #12a150;
+  --concourse-image: url('/bg-terminal.jpg');
+}
+
+/* Which board a device gets.
+ *
+ * The plate is a photograph with panels typeset into it, so its type scales with
+ * its width: below about a thousand pixels the small labels stop being readable,
+ * which is why there is a stacked board at all. But width alone picks wrong on a
+ * tablet — a portrait iPad is 1024 wide and would take the plate, then show it as
+ * a thin strip stranded in a tall screen. So the plate needs room *and* a landscape
+ * shape; everything else gets the stacked board. Landscape tablets qualify, and
+ * that is the answer to "can tablets use the desktop view": in landscape, yes.
+ *
+ * The threshold is square rather than something wider on purpose: it has to keep
+ * a portrait tablet (0.69–0.75) out, without also taking the plate away from an
+ * unusually tall desktop window, which is perfectly capable of showing it.
+ */
+.wide-only {
+  display: none;
+}
+
+@media (min-width: 1024px) and (min-aspect-ratio: 1 / 1) {
+  .wide-only {
+    /* Fixed height with the overflow clipped: this is what lets the plate be
+       taller than the viewport and get cropped instead of scrolled. */
+    height: 100dvh;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+
+  .narrow-only {
+    display: none;
+  }
+}
+
+/* The concourse the board hangs in. Drop the class from <body> to get a flat ground. */
+.concourse::before,
+.concourse::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.concourse::before {
+  background: var(--concourse-image) center / cover no-repeat;
+  filter: brightness(0.42) saturate(0.55) contrast(1.15);
+}
+
+/* Darkens the edges so the illuminated board stays the brightest thing on screen. */
+.concourse::after {
+  background: radial-gradient(ellipse at 50% 40%, transparent 30%, var(--ground) 100%);
+  opacity: 0.85;
+}
+
+/* The board hangs slightly side-on, as in the terminal mock. */
+.board-scene {
+  perspective: 2400px;
+  perspective-origin: 72% 50%;
+}
+
+.board-tilt {
+  transform: rotateY(-4deg) rotateX(1.2deg);
+  transform-style: preserve-3d;
+}
+
+@media (max-width: 767px) {
+  .board-tilt {
+    transform: none;
+  }
+}
+
+:where(a):focus-visible {
+  outline: 4px solid var(--sign-ink);
+  outline-offset: -8px;
+}
+
+.panel-box:focus-visible {
+  outline-color: var(--sign);
+}
+
+.turn-blur-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* Turning your head between two rooms. No opacity anywhere: the incoming scene
+   is opaque and slides in over the outgoing one, which is what makes it read as
+   a pan rather than a dissolve.
+
+   The blur follows the same rule a game engine uses for camera motion blur: it
+   is a directional smear along the sweep, and it is proportional to how fast the
+   camera is turning right now — so both halves are equally smeared at the same
+   instant, peak in the middle of the turn, and are perfectly sharp the moment
+   the camera stops. Blurring only the outgoing half, or clearing the incoming
+   one early, is what made the arrival look unearned. */
+@keyframes pan-out-left {
+  from {
+    transform: perspective(1600px) translateX(0) rotateY(0deg) scale(1);
+    filter: none;
+  }
+  8% {
+    filter: url(#turn-blur-1);
+  }
+  22% {
+    filter: url(#turn-blur-3);
+  }
+  45% {
+    filter: url(#turn-blur-4);
+  }
+  70% {
+    filter: url(#turn-blur-3);
+  }
+  88% {
+    filter: url(#turn-blur-2);
+  }
+  to {
+    transform: perspective(1600px) translateX(-46%) rotateY(26deg) scale(0.97);
+    filter: url(#turn-blur-2);
+  }
+}
+
+@keyframes pan-in-right {
+  from {
+    transform: perspective(1600px) translateX(46%) rotateY(-26deg) scale(0.97);
+    filter: url(#turn-blur-4);
+  }
+  45% {
+    filter: url(#turn-blur-4);
+  }
+  70% {
+    filter: url(#turn-blur-3);
+  }
+  85% {
+    filter: url(#turn-blur-2);
+  }
+  95% {
+    filter: url(#turn-blur-1);
+  }
+  to {
+    transform: perspective(1600px) translateX(0) rotateY(0deg) scale(1);
+    filter: none;
+  }
+}
+
+@keyframes pan-out-right {
+  from {
+    transform: perspective(1600px) translateX(0) rotateY(0deg) scale(1);
+    filter: none;
+  }
+  8% {
+    filter: url(#turn-blur-1);
+  }
+  22% {
+    filter: url(#turn-blur-3);
+  }
+  45% {
+    filter: url(#turn-blur-4);
+  }
+  70% {
+    filter: url(#turn-blur-3);
+  }
+  88% {
+    filter: url(#turn-blur-2);
+  }
+  to {
+    transform: perspective(1600px) translateX(46%) rotateY(-26deg) scale(0.97);
+    filter: url(#turn-blur-2);
+  }
+}
+
+@keyframes pan-in-left {
+  from {
+    transform: perspective(1600px) translateX(-46%) rotateY(26deg) scale(0.97);
+    filter: url(#turn-blur-4);
+  }
+  45% {
+    filter: url(#turn-blur-4);
+  }
+  70% {
+    filter: url(#turn-blur-3);
+  }
+  85% {
+    filter: url(#turn-blur-2);
+  }
+  95% {
+    filter: url(#turn-blur-1);
+  }
+  to {
+    transform: perspective(1600px) translateX(0) rotateY(0deg) scale(1);
+    filter: none;
+  }
+}
+
+/* A language switch stays where it is; see the note in Layout.astro. */
+:root[data-no-turn]::view-transition-old(scene),
+:root[data-no-turn]::view-transition-new(scene) {
+  animation: none;
+}
+
+/* No smear for anyone who asked motion to stay still. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(scene),
+  ::view-transition-new(scene) {
+    animation: none;
+  }
+}
+
+/* The named scene carries the whole movement, so the root must not cross-fade
+   underneath it — that fade was the grey flash between the two rooms. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(scene),
+  ::view-transition-new(scene) {
+    animation: none;
+  }
+}

@@ -1,0 +1,9 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import PredictorPage from '../../../components/pages/PredictorPage.astro';
+
+const lang = 'hu' as const;
+---
+<Layout title="Football predictor | Porkoláb Martin" lang={lang}>
+  <PredictorPage lang={lang} />
+</Layout>

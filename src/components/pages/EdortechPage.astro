@@ -1,0 +1,27 @@
+---
+import PageShell from '../PageShell.astro';
+import Arrow from '../Arrow.astro';
+import Thumb from '../Thumb.astro';
+import { t, path, links, type Lang } from '../../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const tr = t(lang);
+---
+<PageShell crumb={tr('nav.project')} up={{ href: path(lang, '/projects'), label: tr('nav.backProjects') }} lang={lang} title={tr('p.edortech.title')} eyebrow={`${tr('projects.title')} — ${tr('board.status.live')}`}>
+  <div class="max-w-4xl">
+    <p class="text-sm sm:text-base font-bold uppercase tracking-[0.2em] text-panel-ink/60">{tr('p.edortech.role')}</p>
+    <p class="mt-5 text-xl sm:text-2xl font-bold leading-snug">{tr('p.edortech.blurb')}</p>
+
+    <Thumb label={tr('p.edortech.title')} class="mt-10 w-full aspect-[16/9]" />
+
+    <dl class="mt-10 border-t-2 border-panel-ink pt-8">
+      <dt class="text-xs font-bold uppercase tracking-[0.3em] text-panel-ink/60">Stack</dt>
+      <dd class="mt-3 text-lg sm:text-2xl font-black uppercase tracking-tight">{tr('p.edortech.stack')}</dd>
+    </dl>
+
+    <a href={links.edortech} target="_blank" rel="noopener noreferrer" class="panel-box group mt-10 flex items-center justify-between gap-6 border-t-2 border-panel-ink py-6 sm:py-8 hover:bg-panel-ink/[0.04] transition-colors">
+      <span class="text-xl sm:text-4xl font-black uppercase tracking-tighter leading-none">{tr('p.edortech.visit')}</span>
+      <Arrow dir="out" class="w-8 h-8 sm:w-12 sm:h-12 shrink-0 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1" />
+    </a>
+  </div>
+</PageShell>

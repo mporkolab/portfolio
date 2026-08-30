@@ -1,0 +1,9 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ContactPage from '../components/pages/ContactPage.astro';
+
+const lang = 'en' as const;
+---
+<Layout title="Porkoláb Martin | Contact" lang={lang}>
+  <ContactPage lang={lang} />
+</Layout>

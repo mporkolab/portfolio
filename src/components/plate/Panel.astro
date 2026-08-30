@@ -1,0 +1,151 @@
+---
+import { quadTransform, quadBounds, expandQuad, type Quad } from '../../lib/homography';
+
+interface Props {
+  quad: Quad;
+  /** Flat authoring size. Defaults to the quad's bounds, so type is barely distorted. */
+  design?: { w: number; h: number };
+  /** Grow the quad outwards, to cover the photographed panel's edge. */
+  bleed?: number;
+  /** Paints the panel in the sign colour, over whatever the photo shows. */
+  surface?: 'sign' | 'dark' | 'scrim' | 'sheet' | 'none';
+  href?: string;
+  /** Adds the light-box glow on hover/focus. */
+  lit?: boolean;
+  external?: boolean;
+  /** Marks the link as a return trip, so the view transition plays in reverse. */
+  back?: boolean;
+  label?: string;
+  class?: string;
+  /** Extra declarations merged after the geometry. */
+  style?: string;
+}
+
+const {
+  quad,
+  design,
+  bleed = 0,
+  surface = 'none',
+  href,
+  lit = false,
+  external = false,
+  back = false,
+  label,
+  class: className = '',
+  style: extraStyle = '',
+} = Astro.props;
+
+const shape = bleed ? expandQuad(quad, bleed) : quad;
+const bounds = quadBounds(shape);
+const size = design ?? { w: Math.round(bounds.w), h: Math.round(bounds.h) };
+
+const style = [`width:${size.w}px`, `height:${size.h}px`, `transform:${quadTransform(size, shape)}`, extraStyle]
+  .filter(Boolean)
+  .join(';');
+---
+
+<div
+  class:list={['panel', `panel--${surface}`, lit && 'panel--lit', className]}
+  style={style}
+>
+  <slot />
+  {
+    /* A stretched link keeps the panel a single static root element, which is
+       what lets a parent component's scoped styles reach it. */
+    href && (
+      <a
+        class="panel__hit"
+        href={href}
+        aria-label={label}
+        target={external ? '_blank' : undefined}
+        rel={external ? 'noopener noreferrer' : undefined}
+        data-astro-transition={back ? 'back' : undefined}
+      />
+    )
+  }
+  {lit && <span class="panel__glow" aria-hidden="true" />}
+</div>
+
+<style is:global>
+  .panel {
+    position: absolute;
+    overflow: hidden;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    display: block;
+    isolation: isolate;
+  }
+
+  /* Repaints a photographed light box in the sign colour, keeping a hint of the
+     tube's falloff so it still reads as lit rather than as a flat sticker. */
+  .panel--sign {
+    background:
+      radial-gradient(120% 160% at 30% 0%, #ffffff26 0%, transparent 60%),
+      linear-gradient(160deg, #ffffff14 0%, transparent 45%, #00000024 100%),
+      var(--sign);
+  }
+
+  /* The same light box, switched to the unlit black face. */
+  .panel--dark {
+    background:
+      radial-gradient(120% 160% at 30% 0%, #ffffff14 0%, transparent 60%),
+      linear-gradient(160deg, #ffffff0d 0%, transparent 45%, #00000038 100%),
+      var(--frame);
+  }
+
+  /* A white sheet in a light box: paper, not a screen. */
+  .panel--sheet {
+    background:
+      linear-gradient(180deg, #ffffff 0%, #f2f3f5 62%, #e8eaee 100%),
+      var(--panel);
+  }
+
+  /* Holds text legible over the reflective glass. */
+  .panel--scrim {
+    background: linear-gradient(180deg, #0b0d12f2 0%, #07080cf0 100%);
+  }
+
+  .panel__hit {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+  }
+
+  .panel:has(.panel__hit) {
+    cursor: pointer;
+  }
+
+  .panel:has(.panel__hit:focus-visible) {
+    outline: 8px solid var(--sign-ink);
+    outline-offset: -12px;
+  }
+
+  /* The panels are light boxes: hovering lights the tube, it does not recolour. */
+  /* Hovering a light box turns its tube up — so the light has to act on what is
+     already there rather than wash a white film over it. backdrop-filter brightens
+     and saturates the photograph itself, which is why it reads as a lit sign on a
+     yellow face where a white overlay only read as faded. The thin sheen on top is
+     the glass, not the light. */
+  .panel__glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 200ms ease;
+    background: linear-gradient(180deg, #ffffff2e 0%, transparent 42%);
+    backdrop-filter: brightness(1.16) saturate(1.12);
+    -webkit-backdrop-filter: brightness(1.16) saturate(1.12);
+  }
+
+  .panel--lit:hover .panel__glow,
+  .panel--lit:has(.panel__hit:focus-visible) .panel__glow {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .panel__glow {
+      transition: none;
+    }
+  }
+</style>

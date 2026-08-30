@@ -1,0 +1,505 @@
+---
+import { getImage } from 'astro:assets';
+import Arrow from '../Arrow.astro';
+import backdrop from '../../assets/plate-wall.jpeg';
+import { t, path, type Lang } from '../../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const tr = t(lang);
+
+const here = Astro.url.pathname.replace(/^\/hu(?=\/|$)/, '') || '/';
+
+// The scene behind the card is atmosphere only — blurred and dimmed in CSS, so a
+// single modest render is plenty.
+const scene = await getImage({ src: backdrop, width: 1600, format: 'avif', quality: 55 });
+
+// A passport's machine-readable zone, kept honest: it says what the site says.
+const mrz = [
+  'PXHUNPORKOLAB<<MARTIN<<<<<<<<<<<<<<<<<<<<<<<',
+  'FULLSTACK<<DESIGN<BUILD<DEPLOY<<<<<<<<<<<<<<',
+];
+---
+
+<main class="checkpoint" style={`--scene:url(${scene.src})`}>
+  <!-- The way out of the checkpoint, where a way out belongs: top left, in the
+       open, white against the dark terminal — not folded into the card. -->
+  <a href={path(lang, '/')} data-astro-transition="back" class="exit group">
+    <Arrow dir="back" class="w-5 h-5 shrink-0 transition-transform group-hover:-translate-x-1" />
+    <span>{tr('nav.back')}</span>
+  </a>
+
+  <div class="card">
+    <span class="card__punch" aria-hidden="true"></span>
+
+    <header class="card__band">
+      <span class="card__authority">{tr('card.authority')}</span>
+      <span class="card__type">{tr('card.type')}</span>
+    </header>
+
+    <div class="card__body">
+      <div class="card__identity">
+        <div class="card__photo" role="img" aria-label={tr('card.photo')}>
+          <span class="card__initials" aria-hidden="true">PM</span>
+          <span class="card__nophoto">{tr('card.photo')}</span>
+        </div>
+        <span class="card__chip" aria-hidden="true"></span>
+      </div>
+
+      <div class="card__details">
+        <p class="field">
+          <span class="field__label">{tr('card.holder')}</span>
+          <span class="field__name">Porkoláb Martin</span>
+        </p>
+
+        <p class="field">
+          <span class="field__label">{tr('card.roleLabel')}</span>
+          <span class="field__value field__value--lede">{tr('about.lede')}</span>
+        </p>
+
+        <div class="grid">
+          <p class="field">
+            <span class="field__label">{tr('about.storyTitle')}</span>
+            <span class="field__value">{tr('about.body')}</span>
+          </p>
+          <div class="grid__stack">
+            <p class="field">
+              <span class="field__label">{tr('about.skillsTitle')}</span>
+              <span class="field__value field__value--caps">{tr('about.skills')}</span>
+            </p>
+            <p class="field">
+              <span class="field__label">{tr('about.langTitle')}</span>
+              <span class="field__value field__value--caps">{tr('about.langs')}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- The tear-off stub carries the navigation, as a real pass carries yours. -->
+      <aside class="stub">
+        <span class="stub__langs">
+          <a href={path('en', here)} hreflang="en" class:list={['stub__pick', lang === 'en' && 'is-on']}>EN</a>
+          <a href={path('hu', here)} hreflang="hu" class:list={['stub__pick', lang === 'hu' && 'is-on']}>HU</a>
+        </span>
+        <!-- The middle of a real stub carries the machine-readable strip; here it
+             also keeps the column from reading as an empty yellow gap. -->
+        <span class="stub__code" aria-hidden="true"></span>
+
+        <a href={path(lang, '/')} data-astro-transition="back" class="stub__back group">
+          <Arrow dir="back" class="w-4 h-4 shrink-0 transition-transform group-hover:-translate-x-1" />
+          <span>{tr('card.stub')}</span>
+        </a>
+      </aside>
+    </div>
+
+    <footer class="card__mrz" aria-hidden="true">
+      {mrz.map((line) => <span>{line}</span>)}
+    </footer>
+  </div>
+</main>
+
+<style>
+  .checkpoint {
+    position: relative;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 6vh 4vw;
+    isolation: isolate;
+  }
+
+  /* Depth, not detail: the terminal is out of focus behind the card. */
+  .checkpoint::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background: var(--scene) center / cover no-repeat;
+    filter: blur(10px) brightness(0.55) saturate(0.6);
+    transform: scale(1.08);
+  }
+
+  .checkpoint::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(ellipse at 50% 45%, transparent 25%, var(--ground) 95%);
+    opacity: 0.72;
+  }
+
+  .card {
+    position: relative;
+    width: min(100%, 1040px);
+    background: var(--panel);
+    color: var(--panel-ink);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow:
+      0 2px 0 rgba(255, 255, 255, 0.5) inset,
+      0 40px 90px rgba(0, 0, 0, 0.65),
+      0 6px 18px rgba(0, 0, 0, 0.4);
+  }
+
+  /* The lanyard slot, punched through the header band. */
+  .card__punch {
+    position: absolute;
+    z-index: 2;
+    top: 15px;
+    left: 50%;
+    translate: -50% 0;
+    width: 104px;
+    height: 13px;
+    border-radius: 999px;
+    background: var(--ground);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.16),
+      inset 0 2px 3px rgba(0, 0, 0, 0.8);
+  }
+
+  .card__band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 42px 32px 14px;
+    background: var(--sign);
+    color: var(--sign-ink);
+    font-size: clamp(0.62rem, 1vw, 0.8rem);
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  /* Black type on the yellow band, like every other sign in the terminal — the
+     inverted chip was the one place the system read backwards. */
+  .card__type {
+    padding: 6px 12px;
+    color: var(--sign-ink);
+    box-shadow: inset 0 0 0 3px var(--sign-ink);
+  }
+
+  .card__body {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) 3fr minmax(104px, 0.55fr);
+    align-items: stretch;
+  }
+
+  .card__identity {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+    padding: 26px;
+    border-right: 3px solid color-mix(in srgb, var(--panel-ink) 15%, transparent);
+  }
+
+  /* The photo box fills its column rather than floating in it: on a pass the
+     portrait runs the height of the panel. */
+  .card__photo {
+    position: relative;
+    flex: 1;
+    min-height: 190px;
+    display: grid;
+    place-items: center;
+    gap: 8px;
+    background: color-mix(in srgb, var(--panel-ink) 6%, transparent);
+    border: 2px solid color-mix(in srgb, var(--panel-ink) 22%, transparent);
+  }
+
+  .card__initials {
+    font-size: clamp(2rem, 4.4vw, 3.4rem);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    color: color-mix(in srgb, var(--panel-ink) 22%, transparent);
+  }
+
+  .card__nophoto {
+    position: absolute;
+    bottom: 10px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--panel-ink) 45%, transparent);
+  }
+
+  /* The contact plate of a smart card. */
+  .card__chip {
+    align-self: flex-start;
+    width: 54px;
+    height: 42px;
+    border-radius: 6px;
+    background:
+      linear-gradient(90deg, transparent 46%, #00000033 46% 54%, transparent 54%),
+      linear-gradient(0deg, transparent 44%, #00000033 44% 56%, transparent 56%),
+      linear-gradient(150deg, #d8c48a, #b79a4e 55%, #e6d8a8);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+
+  .card__details {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding: 26px 30px;
+    min-width: 0;
+  }
+
+  .field {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .field__label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--panel-ink) 50%, transparent);
+  }
+
+  .field__name {
+    font-size: clamp(1.35rem, 4.6vw, 3rem);
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -0.035em;
+    text-transform: uppercase;
+  }
+
+  .field__value {
+    font-size: clamp(0.82rem, 1.15vw, 1rem);
+    line-height: 1.5;
+    color: color-mix(in srgb, var(--panel-ink) 82%, transparent);
+  }
+
+  .field__value--lede {
+    font-size: clamp(1rem, 1.5vw, 1.35rem);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--panel-ink);
+  }
+
+  .field__value--caps {
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: var(--panel-ink);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 26px;
+    padding-top: 20px;
+    border-top: 3px solid color-mix(in srgb, var(--panel-ink) 15%, transparent);
+  }
+
+  .grid__stack {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .stub {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 26px 14px;
+    background: var(--sign);
+    color: var(--sign-ink);
+    /* The perforation. */
+    border-left: 3px dashed color-mix(in srgb, var(--panel) 55%, transparent);
+  }
+
+  .stub__langs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 900;
+  }
+
+  .stub__code {
+    flex: 1;
+    width: 26px;
+    min-height: 60px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--sign-ink) 0 2px,
+      transparent 2px 5px,
+      var(--sign-ink) 5px 8px,
+      transparent 8px 12px
+    );
+    opacity: 0.75;
+  }
+
+  .stub__pick {
+    padding: 2px 6px;
+    color: inherit;
+    text-decoration: none;
+    opacity: 0.55;
+  }
+
+  .stub__pick:hover {
+    opacity: 0.85;
+  }
+
+  .stub__pick.is-on {
+    opacity: 1;
+    background: var(--sign-ink);
+    color: var(--sign);
+  }
+
+  /* Reading a button sideways is a puzzle, not a signpost: it stays horizontal
+     at every size. */
+  .stub__back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 12px;
+    color: inherit;
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    box-shadow: inset 0 0 0 3px var(--sign-ink);
+    transition: background 160ms ease, color 160ms ease;
+  }
+
+  .stub__back:hover {
+    background: var(--sign-ink);
+    color: var(--sign);
+  }
+
+  .card__mrz {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 14px 26px 18px;
+    background: color-mix(in srgb, var(--panel-ink) 5%, transparent);
+    border-top: 3px solid color-mix(in srgb, var(--panel-ink) 15%, transparent);
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: clamp(0.55rem, 0.95vw, 0.8rem);
+    letter-spacing: 0.14em;
+    color: color-mix(in srgb, var(--panel-ink) 55%, transparent);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .exit {
+    position: absolute;
+    top: max(3vh, 20px);
+    left: max(3vw, 20px);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px 10px 12px;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: clamp(0.68rem, 1vw, 0.85rem);
+    font-weight: 900;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    box-shadow: inset 0 0 0 3px #ffffff59;
+    transition: box-shadow 160ms ease, background 160ms ease, color 160ms ease;
+  }
+
+  .exit:hover {
+    background: #ffffff;
+    color: var(--ground);
+    box-shadow: inset 0 0 0 3px #ffffff;
+  }
+
+  /* A card is a card at any size: it stacks rather than handing over to a
+     different layout. */
+  @media (max-width: 860px) {
+    .checkpoint {
+      padding: 4vh 3vw;
+    }
+
+    .card__body {
+      grid-template-columns: 1fr;
+    }
+
+    .card__identity {
+      flex-direction: row;
+      align-items: center;
+      gap: 18px;
+      border-right: 0;
+      border-bottom: 3px solid color-mix(in srgb, var(--panel-ink) 15%, transparent);
+    }
+
+    /* The chip sits at the far edge of the card, as it does on a real pass. */
+    .card__chip {
+      margin-left: auto;
+    }
+
+    .card__photo {
+      width: 96px;
+      flex: none;
+      aspect-ratio: 3 / 4;
+      min-height: 0;
+    }
+
+    .card__nophoto {
+      display: none;
+    }
+
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .stub {
+      flex-direction: row-reverse;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 22px;
+      border-left: 0;
+      border-top: 3px dashed color-mix(in srgb, var(--panel) 55%, transparent);
+    }
+
+    .stub__langs {
+      flex-direction: row;
+      gap: 14px;
+    }
+
+    .stub__code {
+      display: none;
+    }
+
+    .stub__back {
+      flex-direction: row;
+    }
+
+    .stub__back span {
+      writing-mode: horizontal-tb;
+      rotate: none;
+    }
+
+    .stub__arrow {
+      rotate: none;
+    }
+
+    .stub__back:hover .stub__arrow {
+      transform: translateX(-8px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stub__arrow {
+      transition: none;
+    }
+  }
+</style>

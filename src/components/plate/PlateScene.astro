@@ -1,0 +1,239 @@
+---
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  plate: ImageMetadata;
+  /** Natural pixel space the panel geometry is measured in. */
+  width?: number;
+  height?: number;
+  /**
+   * The rectangle of the photograph the panels actually live on, in the image's
+   * own pixels, for a plate shot with margin around its subject. Given one, the
+   * photo is sized so that this box — not the whole frame — fits the viewport,
+   * and the surplus margin is what gets cropped: the scene goes full-bleed at
+   * any shape without ever cutting a panel. The panel geometry is then measured
+   * inside `design`, a space of this box's shape.
+   */
+  content?: { x: number; y: number; w: number; h: number };
+  design?: { w: number; h: number };
+  /** Report click coordinates in that space. Dev only. */
+  calibrate?: boolean;
+  class?: string;
+}
+
+const {
+  plate,
+  width = plate.width,
+  height = plate.height,
+  content,
+  design,
+  calibrate = false,
+  class: className = '',
+} = Astro.props;
+
+// Without a content box the whole frame is the subject: the panel space covers
+// the photo, and the plate keeps the capped crop it had before.
+const box = content ?? { x: 0, y: 0, w: width, h: height };
+const space = design ?? { w: box.w, h: box.h };
+
+const pct = (part: number, whole: number) => `${((part / whole) * 100).toFixed(4)}%`;
+const FILL = 0.9; // how much of the viewport the content box aims to occupy
+const imageAspect = width / height;
+const boxOfWidth = box.w / width;
+const boxOfHeight = box.h / height;
+
+// The photograph is decorative — every word on it is real DOM — so it is painted
+// as a background inside a min-width media query. Narrow viewports get the
+// stacked board instead and never fetch it.
+const [standard, retina] = await Promise.all([
+  getImage({ src: plate, width: 1600, format: 'avif', quality: 68 }),
+  getImage({ src: plate, width: 2754, format: 'avif', quality: 62 }),
+]);
+
+// The scene is one photograph with a fixed 2784:1536 shape, so on a wider screen
+// something has to give: either bars down the sides or a crop off the top and
+// bottom. It crops — the plate fills the frame — but only so far. Past that the
+// crop would start eating the sign bar itself, and bars are the lesser evil.
+const vars = [
+  `--plate-w:${width}`,
+  `--plate-h:${height}`,
+  `--plate-fit:calc(100dvh * ${width} / ${height})`,
+  // Widths at which the content box reaches FILL of the viewport's width and of
+  // its height; the smaller one binds. Then two floors that keep the photo
+  // covering the frame, and a ceiling that keeps the content box inside it.
+  `--photo-by-width:calc(100vw * ${(FILL / boxOfWidth).toFixed(5)})`,
+  `--photo-by-height:calc(100dvh * ${((FILL * imageAspect) / boxOfHeight).toFixed(5)})`,
+  `--photo-cover-h:calc(100dvh * ${imageAspect})`,
+  `--photo-max:calc(100dvh * ${(imageAspect / boxOfHeight).toFixed(5)})`,
+  `--box-x:${pct(box.x, width)}`,
+  `--box-y:${pct(box.y, height)}`,
+  `--box-w:${pct(box.w, width)}`,
+  `--box-h:${pct(box.h, height)}`,
+  `--plate-1x:url(${standard.src})`,
+  `--plate-2x:url(${retina.src})`,
+].join(';');
+---
+
+<div class="stage" style={vars}>
+  <!-- Whatever the plate cannot cover is filled with the same photograph, thrown
+       out of focus and dimmed: the frame stays full-bleed and the leftover reads
+       as the depth of the concourse rather than as a black bar. -->
+  <div class="stage__depth" aria-hidden="true"></div>
+
+  <div class:list={['plate', content && 'plate--boxed', className]}>
+    <!-- Panels live in the plate's natural pixel space, scaled as one block. -->
+    <div class="plate__space" data-calibrate={calibrate ? '' : undefined}>
+      <div class="plate__units" style={`transform:scale(tan(atan2(100cqw, ${space.w}px)))`}>
+        <slot />
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background-color: var(--ground);
+  }
+
+  .stage__depth {
+    position: absolute;
+    inset: 0;
+    /* Scaled past the edges so the blur has something to blur into. */
+    scale: 1.08;
+    background-position: center;
+    background-size: cover;
+    filter: blur(40px) brightness(0.3) saturate(0.6);
+  }
+
+  .plate {
+    position: relative;
+    /* Fill the frame's width, but never get taller than the viewport plus the
+       10% the photo can spare. --plate-fit is the width at which the whole photo
+       fits the viewport height, so fit * 1.1 is the widest the plate may be
+       before the crop bites; on a viewport taller than the photo that term is
+       larger than 100%, and min() correctly falls back to filling the width and
+       letterboxing. (Reading fit as a *lower* bound instead was the bug that
+       blew the plate up past the frame and cut the right-hand panels off.)
+
+       The photo's slack is not symmetric — there is 9.2% of empty ceiling above
+       the sign bar and only 2.2% of floor below the bottom strip — so the crop
+       is not symmetric either: the plate sits on the bottom edge and every
+       cropped pixel comes off the ceiling. 10% is precisely what the ceiling can
+       give. Past roughly 2:1 the bars come back, which is the honest outcome for
+       a photograph with a fixed shape. */
+    width: min(100%, calc(var(--plate-fit) * 1.1));
+    margin-inline: auto;
+    aspect-ratio: var(--plate-w) / var(--plate-h);
+    background-position: center;
+    background-size: cover;
+    overflow: hidden;
+    /* Sinks the plate's own edge into the out-of-focus depth behind it, so the
+       join reads as distance rather than as a cut. */
+    box-shadow: 0 0 90px 30px rgb(0 0 0 / 0.55);
+  }
+
+  /* Matches the board switch in global.css: never fetch the photograph for a
+     device that will not show it. */
+  @media (min-width: 1024px) and (min-aspect-ratio: 1 / 1) {
+    .plate,
+    .stage__depth {
+      background-image: image-set(var(--plate-1x) 1x, var(--plate-2x) 2x);
+    }
+  }
+
+  /* Only pin the plate to the floor where it is actually being cropped, which is
+     when the viewport is wider than the photo. On a squarer screen — a landscape
+     tablet — nothing is cropped, and the scene belongs in the middle. */
+  @media (min-aspect-ratio: 2784 / 1536) {
+    .plate:not(.plate--boxed) {
+      align-self: end;
+    }
+  }
+
+  /* A plate with margin around its subject does not need any of that: it is
+     sized so the subject fits and the margin absorbs the difference, so it fills
+     the frame at every shape and stays centred. */
+  /* Centred by absolute position rather than by the grid: this plate is wider
+     than its frame on purpose, and `margin-inline: auto` collapses to zero on an
+     over-sized box, which pinned it to the left edge and pushed the sign off the
+     right of the screen. */
+  .plate--boxed {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: min(
+      max(min(var(--photo-by-width), var(--photo-by-height)), 100vw, var(--photo-cover-h)),
+      var(--photo-max)
+    );
+    box-shadow: none;
+  }
+
+  .plate--boxed .plate__space {
+    inset: auto;
+    top: var(--box-y);
+    left: var(--box-x);
+    width: var(--box-w);
+    height: var(--box-h);
+  }
+
+  .plate__space {
+    position: absolute;
+    inset: 0;
+    container-type: inline-size;
+  }
+
+  /* One transform carries the whole natural-pixel space onto the photo, so the
+     per-panel matrices stay constants that never need recomputing. The scale has
+     to come through atan2/tan: dividing a container-query length by a number
+     yields a length, and scale() needs a bare number. */
+  .plate__units {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(var(--plate-w) * 1px);
+    height: calc(var(--plate-h) * 1px);
+    transform-origin: 0 0;
+  }
+</style>
+
+<script>
+  // Calibration: click the corners of a panel to read them back in natural pixels.
+  const space = document.querySelector<HTMLElement>('.plate__space[data-calibrate]');
+  if (space) {
+    const readout = document.createElement('pre');
+    readout.style.cssText =
+      'position:fixed;left:8px;bottom:8px;z-index:99;margin:0;padding:8px 10px;' +
+      'background:#000c;color:#0f0;font:12px/1.4 monospace;pointer-events:none';
+    readout.textContent = 'click: tl, tr, br, bl';
+    document.body.appendChild(readout);
+
+    const names = ['tl', 'tr', 'br', 'bl'];
+    let points: Array<[number, number]> = [];
+
+    space.addEventListener('click', (event) => {
+      const stage = space.closest<HTMLElement>('.stage');
+      if (!stage) return;
+      const rect = space.getBoundingClientRect();
+      const style = getComputedStyle(stage);
+      const w = Number(style.getPropertyValue('--plate-w'));
+      const h = Number(style.getPropertyValue('--plate-h'));
+      const x = Math.round(((event.clientX - rect.left) / rect.width) * w);
+      const y = Math.round(((event.clientY - rect.top) / rect.height) * h);
+
+      if (points.length === 4) points = [];
+      points.push([x, y]);
+      readout.textContent = points.map((p, i) => `${names[i]}: [${p[0]}, ${p[1]}],`).join('\n');
+      if (points.length === 4) {
+        console.log('[calibrate]', JSON.stringify(Object.fromEntries(points.map((p, i) => [names[i], p]))));
+      }
+    });
+  }
+</script>

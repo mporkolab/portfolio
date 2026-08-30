@@ -1,0 +1,57 @@
+---
+import { t, path, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  /** Replaces the wordmark with where you are — a case study says "Project". */
+  crumb?: string;
+}
+const { lang, crumb } = Astro.props;
+const tr = t(lang);
+
+// The same page in the other language: /about <-> /hu/about
+const here = Astro.url.pathname.replace(/^\/hu(?=\/|$)/, '') || '/';
+const enHref = path('en', here);
+const huHref = path('hu', here);
+---
+
+<header
+  class="flex items-center justify-between gap-4 bg-panel text-panel-ink px-4 py-3 sm:px-8 sm:py-5 uppercase tracking-[0.2em] border-b-4 border-panel-ink"
+>
+  <a href={path(lang, '/')} data-astro-transition="back" class="font-black text-sm sm:text-2xl tracking-[0.15em]">
+    {
+      crumb ? (
+        <span>{crumb}</span>
+      ) : (
+        <>
+          <span>{tr('site.name')}</span>
+          <span class="mx-2 sm:mx-3 text-panel-ink/30">|</span>
+          <span class="text-panel-ink/55">{tr('site.tag')}</span>
+        </>
+      )
+    }
+  </a>
+
+  <div class="flex items-center gap-3 sm:gap-6">
+    <nav aria-label="Language" class="flex items-center font-bold text-xs sm:text-base">
+      <a
+        href={enHref}
+        hreflang="en"
+        aria-current={lang === 'en' ? 'true' : undefined}
+        class={`px-2 py-1 ${lang === 'en' ? 'bg-sign text-sign-ink' : 'text-panel-ink/45 hover:text-panel-ink'}`}>EN</a
+      >
+      <span class="text-panel-ink/30">|</span>
+      <a
+        href={huHref}
+        hreflang="hu"
+        aria-current={lang === 'hu' ? 'true' : undefined}
+        class={`px-2 py-1 ${lang === 'hu' ? 'bg-sign text-sign-ink' : 'text-panel-ink/45 hover:text-panel-ink'}`}>HU</a
+      >
+    </nav>
+
+    <p class="font-black text-sm sm:text-2xl tabular-nums tracking-normal">
+      <time data-clock datetime="">--:--</time>
+      <span class="ml-1 text-[0.5em] align-top text-panel-ink/50 tracking-[0.2em]">BUD</span>
+    </p>
+  </div>
+</header>

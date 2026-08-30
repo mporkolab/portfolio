@@ -1,0 +1,32 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Layout from '../../../../layouts/Layout.astro';
+import ProjectsPage from '../../../../components/pages/ProjectsPage.astro';
+import ProjectsPlate from '../../../../components/plate/ProjectsPlate.astro';
+import { projectPages } from '../../../../lib/projects';
+
+// Page one lives at /projects; only the later wall sections are routed here, so
+// with a handful of projects this produces nothing at all.
+export const getStaticPaths: GetStaticPaths = () => {
+  const pages = projectPages();
+  return pages.slice(1).map((items, index) => ({
+    params: { n: String(index + 2) },
+    props: { items, page: index + 2, hasNext: index + 2 < pages.length },
+  }));
+};
+
+
+import { cameraTurn } from '../../../../lib/transitions';
+
+const lang = 'hu' as const;
+const { items, page, hasNext } = Astro.props;
+---
+<Layout title="Porkoláb Martin | Projektek" lang={lang}>
+  <div class="wide-only" transition:name="scene" transition:animate={cameraTurn}>
+    <ProjectsPlate lang={lang} page={page} items={items} hasNext={hasNext} />
+  </div>
+  <div class="narrow-only">
+    <ProjectsPage lang={lang} />
+  </div>
+</Layout>
+

@@ -1,0 +1,14 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AccessCard from '../components/plate/AccessCard.astro';
+
+import { cameraTurn } from '../lib/transitions';
+
+const lang = 'en' as const;
+---
+<Layout title="Porkoláb Martin | Profile" lang={lang}>
+  <div transition:name="scene" transition:animate={cameraTurn}>
+    <AccessCard lang={lang} />
+  </div>
+</Layout>
+

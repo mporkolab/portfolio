@@ -1,0 +1,64 @@
+---
+// Development aid: draws every measured panel over its plate so the geometry can
+// be checked and refined. Not part of the site; excluded from production builds.
+import PlateScene from '../../components/plate/PlateScene.astro';
+import Panel from '../../components/plate/Panel.astro';
+import { homePanels, projectFrames, projectsSign, projectsPaging } from '../../lib/panels';
+import plateHome from '../../assets/bigger-bg.jpeg';
+import plateWall from '../../assets/plate-wall.jpeg';
+import '../../styles/global.css';
+
+// A build aid, not part of the site: it renders nothing in a production build.
+const scenes = import.meta.env.DEV ? [
+  { plate: plateHome, name: 'home', panels: Object.entries(homePanels) },
+  {
+    plate: plateWall,
+    name: 'projects',
+    panels: [
+      ['back sign', projectsSign] as const,
+      ...projectFrames.map((q, i) => [`frame ${i + 1}`, q] as const),
+      ...Object.entries(projectsPaging),
+    ],
+  },
+] : [];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Panel calibration</title>
+  </head>
+  <body style="margin:0;background:#111;color:#fff;font:14px system-ui">
+    {
+      scenes.map((scene) => (
+        <section style="margin-bottom:24px">
+          <h2 style="margin:8px 12px;font:700 13px/1 monospace;letter-spacing:.2em;text-transform:uppercase">
+            {scene.name}
+          </h2>
+          <PlateScene plate={scene.plate} calibrate={scene.name === 'home'}>
+            {scene.panels.map(([name, quad]) => (
+              <Panel quad={quad} design={{ w: 1000, h: 600 }} class="cal">
+                <span class="cal__name">{name}</span>
+              </Panel>
+            ))}
+          </PlateScene>
+        </section>
+      ))
+    }
+
+    <style is:global>
+      .cal {
+        outline: 3px solid #00ff88;
+        background: rgba(0, 255, 136, 0.14);
+      }
+      .cal__name {
+        display: block;
+        padding: 10px 14px;
+        font: 700 40px/1 monospace;
+        color: #00ff88;
+        text-shadow: 0 0 8px #000;
+      }
+    </style>
+  </body>
+</html>

@@ -1,0 +1,300 @@
+---
+import PlateScene from './PlateScene.astro';
+import Panel from './Panel.astro';
+import Arrow from '../Arrow.astro';
+import Thumb from '../Thumb.astro';
+import plate from '../../assets/plate-wall.jpeg';
+import { PROJECTS_PLATE, projectFrames, projectsSign, projectsPaging } from '../../lib/panels';
+import { quadBounds } from '../../lib/homography';
+import { projectCopy, type Project } from '../../lib/projects';
+import { t, path, type Lang } from '../../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  page: number;
+  items: Project[];
+  hasNext: boolean;
+}
+const { lang, page, items, hasNext } = Astro.props;
+const tr = t(lang);
+
+const frames = projectFrames;
+
+const here = Astro.url.pathname.replace(/^\/hu(?=\/|$)/, '') || '/';
+const pageHref = (n: number) => path(lang, n === 1 ? '/projects' : `/projects/page/${n}`);
+
+// The last frame runs off the edge of the shot, so each card is typeset relative
+// to its own frame rather than to a single wall-wide size.
+const REFERENCE_FRAME = 470;
+const frameStyle = (quad: (typeof frames)[number]) => {
+  const { w } = quadBounds(quad);
+  return { style: `font-size:${Math.round((w / REFERENCE_FRAME) * 26 * 10) / 10}px`, compact: w < 340 };
+};
+---
+
+<PlateScene plate={plate} width={PROJECTS_PLATE.w} height={PROJECTS_PLATE.h} class="wall">
+  <!-- The sign hanging over the concourse is the way back. -->
+  <Panel quad={projectsSign} surface="sign" bleed={6} lit href={path(lang, '/')} back class="wall-sign">
+    <span class="wall-sign__back">
+      <Arrow dir="back" class="wall-sign__arrow" />
+      {tr('nav.backShort')}
+    </span>
+    <span class="wall-sign__here">
+      {tr('projects.title')}
+      <span class="wall-sign__tag">{tr('site.name')}</span>
+    </span>
+
+    <span class="wall-sign__langs">
+      <a href={path('en', here)} hreflang="en" class:list={['wall-sign__pick', lang === 'en' && 'is-on']}>EN</a>
+      <a href={path('hu', here)} hreflang="hu" class:list={['wall-sign__pick', lang === 'hu' && 'is-on']}>HU</a>
+    </span>
+  </Panel>
+
+  {
+    frames.map((quad, i) => {
+      const project = items[i];
+      if (!project) {
+        // An unlit frame. Better an empty display than an invented project.
+        return <Panel quad={quad} class="frame frame--dark" />;
+      }
+      const copy = projectCopy(lang, project.slug);
+      const { style, compact } = frameStyle(quad);
+      return (
+        <Panel
+          quad={quad}
+          class:list={['frame', compact && 'frame--compact']}
+          style={style}
+          lit
+          href={path(lang, `/projects/${project.slug}`)}
+          label={copy.title}
+        >
+          <Thumb label={copy.title} tone="dark" class="frame__thumb" />
+          <span class="frame__status">
+            <i class:list={['dot', project.status === 'live' && 'dot--live']} />
+            {project.status === 'live' ? tr('board.status.live') : tr('board.status.dev')}
+          </span>
+          <span class="frame__name">{copy.title}</span>
+          {!compact && <span class="frame__role">{copy.role}</span>}
+          <span class="frame__cta">
+            {!compact && tr('board.readCase')}
+            <Arrow dir="right" class="frame__arrow" />
+          </span>
+        </Panel>
+      );
+    })
+  }
+
+  {
+    page > 1 && (
+      <Panel quad={projectsPaging.prev} back surface="sign" lit href={pageHref(page - 1)} label={tr('wall.prev')} class="paging">
+        <Arrow dir="back" class="paging__arrow" />
+      </Panel>
+    )
+  }
+  {
+    hasNext && (
+      <Panel quad={projectsPaging.next} surface="sign" lit href={pageHref(page + 1)} label={tr('wall.next')} class="paging">
+        <Arrow dir="right" class="paging__arrow" />
+      </Panel>
+    )
+  }
+</PlateScene>
+
+<style is:global>
+  /* Nested for the same reason as the home plate: Astro's scope attribute does
+     not reach the root element a child component renders. */
+  .wall {
+    .wall-sign {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 26px 24px;
+      color: var(--sign-ink);
+    }
+
+    .wall-sign__back {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .wall-sign__arrow {
+      width: 40px;
+      height: 40px;
+      flex: none;
+      transition: transform 200ms ease;
+    }
+
+    .wall-sign:hover .wall-sign__arrow {
+      transform: translateX(-10px);
+    }
+
+    .wall-sign__langs {
+      display: flex;
+      gap: 10px;
+      position: relative;
+      z-index: 3;
+    }
+
+    .wall-sign__pick {
+      padding: 2px 8px;
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      color: inherit;
+      text-decoration: none;
+      opacity: 0.55;
+    }
+
+    .wall-sign__pick:hover {
+      opacity: 0.85;
+    }
+
+    .wall-sign__pick.is-on {
+      opacity: 1;
+      background: var(--sign-ink);
+      color: var(--sign);
+    }
+
+    /* The frames stay lit screens: white type on a dark face. The sign colour's
+       ink is black, which belongs on the yellow sign, not in here. */
+    .frame {
+      display: flex;
+      flex-direction: column;
+      padding: 1.3em;
+      font-size: 26px;
+      color: var(--ground-ink);
+      background: linear-gradient(180deg, #0c1622f2, #050a12f7);
+    }
+
+    /* Too narrow for a paragraph: title, status and an arrow only. */
+    .frame--compact .frame__name {
+      font-size: 1.7em;
+    }
+
+    .frame--compact .frame__cta {
+      justify-content: flex-end;
+    }
+
+    .frame--dark {
+      background: linear-gradient(180deg, #0a121cd9, #05090ee6);
+    }
+
+    .frame__thumb {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      margin-bottom: 1em;
+    }
+
+    .frame__status {
+      display: flex;
+      align-items: center;
+      gap: 0.45em;
+      font-size: 1em;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+
+    .frame__name {
+      margin-top: 0.5em;
+      font-size: 2em;
+      font-weight: 900;
+      line-height: 0.94;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+
+    .frame__role {
+      margin-top: 0.5em;
+      font-size: 1em;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.62;
+    }
+
+    .frame__cta {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      margin-top: auto;
+      padding-top: 1em;
+      font-size: 1em;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .frame__arrow {
+      width: 1.3em;
+      height: 1.3em;
+      flex: none;
+      transition: transform 200ms ease;
+    }
+
+    .frame:hover .frame__arrow {
+      transform: translateX(10px);
+    }
+
+    .paging {
+      display: grid;
+      place-items: center;
+      color: var(--sign-ink);
+    }
+
+    /* The sign is a real sign: it says where you are as well as the way out. */
+    .wall-sign__here {
+      margin: auto 0;
+      font-size: 56px;
+      font-weight: 900;
+      line-height: 0.9;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+
+    .wall-sign__tag {
+      display: block;
+      margin-top: 10px;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      opacity: 0.65;
+    }
+
+    .paging__arrow {
+      width: 90px;
+      height: 90px;
+      transition: transform 200ms ease;
+    }
+
+    .paging:hover .paging__arrow {
+      transform: translateX(12px);
+    }
+
+    .dot {
+      width: 0.7em;
+      height: 0.7em;
+      flex: none;
+      border: 0.15em solid currentColor;
+    }
+
+    .dot--live {
+      background: #6ee7a8;
+      border-color: #6ee7a8;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .wall-sign__arrow,
+      .frame__arrow,
+      .paging__arrow {
+        transition: none;
+      }
+    }
+  }
+</style>

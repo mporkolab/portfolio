@@ -1,0 +1,493 @@
+---
+import PlateScene from './PlateScene.astro';
+import Panel from './Panel.astro';
+import Arrow from '../Arrow.astro';
+import Thumb from '../Thumb.astro';
+import plateHome from '../../assets/bigger-bg.jpeg';
+import { quadBounds } from '../../lib/homography';
+import { HOME_PLATE, HOME_CONTENT, HOME_SPACE, homePanels as q } from '../../lib/panels';
+import { t, path, links, type Lang } from '../../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const tr = t(lang);
+
+const here = Astro.url.pathname.replace(/^\/hu(?=\/|$)/, '') || '/';
+
+// Inter Black, uppercase, tight tracking runs at roughly this fraction of the
+// font size per character. Sizing from it keeps a long word — Hungarian's
+// KAPCSOLAT against English's CONTACT — inside its own panel in any language.
+const CHAR_WIDTH = 0.66;
+const GATE_PADDING = 80;
+// A little breathing room either side of the word.
+const BAND_PADDING = 0.3;
+
+const fit = (quad: (typeof q)['profile'], label: string, max: number) =>
+  Math.min(
+    max,
+    Math.floor((quadBounds(quad).w - GATE_PADDING) / (label.length * CHAR_WIDTH + BAND_PADDING)),
+  );
+
+const gates = [
+  { id: 'A1', quad: q.profile, label: tr('gate.profile'), href: path(lang, '/about'), dir: 'down' as const, max: 118 },
+  { id: 'A2', quad: q.projects, label: tr('gate.projects'), href: path(lang, '/projects'), dir: 'down' as const, max: 110 },
+  { id: 'A3', quad: q.contact, label: tr('gate.contact'), href: path(lang, '/contact'), dir: 'out' as const, max: 96 },
+].map((gate) => ({ ...gate, size: fit(gate.quad, gate.label, gate.max) }));
+---
+
+<PlateScene
+  plate={plateHome}
+  width={HOME_PLATE.w}
+  height={HOME_PLATE.h}
+  content={HOME_CONTENT}
+  design={HOME_SPACE}
+  class="home-plate"
+>
+  {
+    gates.map((gate) => (
+      <Panel quad={gate.quad} bleed={10} lit href={gate.href} class="gate">
+        <span class="gate__row">
+          <span class="gate__id">Gate {gate.id}</span>
+          <Arrow dir={gate.dir} class="gate__arrow" />
+        </span>
+        <span class="gate__label" style={`font-size:${gate.size}px`}>{gate.label}</span>
+      </Panel>
+    ))
+  }
+
+  <Panel quad={q.identity} bleed={10} href={path(lang, '/')} class="identity">
+    <span class="identity__name">{tr('site.name')}</span>
+    <span class="identity__tag">{tr('site.tag')}</span>
+  </Panel>
+
+  <Panel quad={q.language} bleed={8} class="langs">
+    <a href={path('en', here)} hreflang="en" aria-current={lang === 'en' ? 'true' : undefined}
+      class:list={['langs__pick', lang === 'en' && 'is-on']}>EN</a>
+    <a href={path('hu', here)} hreflang="hu" aria-current={lang === 'hu' ? 'true' : undefined}
+      class:list={['langs__pick', lang === 'hu' && 'is-on']}>HU</a>
+  </Panel>
+
+  <Panel quad={q.clock} bleed={8} class="clock">
+    <time data-clock datetime="">--:--</time>
+    <span class="clock__zone">BUD</span>
+  </Panel>
+
+  <!-- Current work is parked, not deleted: edortech now carries the featured
+       screens instead, and this panel comes back when there are two things
+       worth showing at once.
+
+  <Panel quad={q.current} surface="sheet" class="current">
+    <h2 class="current__title">{tr('board.current')}</h2>
+    <a href={path(lang, '/projects/edortech')} class="card">
+      <Thumb label={tr('p.edortech.title')} tone="dark" class="card__thumb" />
+      <span class="card__body">
+        <span class="card__status"><i class="dot dot--live"></i>{tr('board.status.live')}</span>
+        <span class="card__name">{tr('p.edortech.title')}</span>
+        <span class="card__role">{tr('p.edortech.role')}</span>
+        <span class="card__blurb">{tr('p.edortech.blurb')}</span>
+        <span class="card__cta">{tr('board.readCase')} <Arrow dir="right" class="cta__arrow" /></span>
+      </span>
+    </a>
+  </Panel>
+  -->
+
+  <Panel quad={q.featuredArt} class="screen screen--art" href={path(lang, '/projects/edortech')}
+    label={tr('p.edortech.title')}>
+    <Thumb label={tr('p.edortech.title')} class="screen__thumb" />
+  </Panel>
+
+  <!-- The whole panel is one link, so a "read the case study" line underneath it
+       only repeats what the arrow already says. -->
+  <Panel quad={q.featuredText} class="screen screen--text" href={path(lang, '/projects/edortech')}>
+    <span class="screen__eyebrow">{tr('board.featured')}</span>
+    <span class="screen__name">{tr('p.edortech.title')}</span>
+    <span class="card__status"><i class="dot dot--live"></i>{tr('board.status.live')}</span>
+    <span class="screen__role">{tr('p.edortech.role')}</span>
+    <span class="screen__go"><Arrow dir="right" class="cta__arrow" /></span>
+  </Panel>
+
+  <Panel quad={q.outbound} class="outbound">
+    <a href={links.github} target="_blank" rel="noopener noreferrer" class="outbound__link">
+      {tr('footer.gh')}<Arrow dir="out" class="outbound__arrow" />
+    </a>
+    <a href={links.linkedin} target="_blank" rel="noopener noreferrer" class="outbound__link">
+      {tr('footer.li')}<Arrow dir="out" class="outbound__arrow" />
+    </a>
+  </Panel>
+</PlateScene>
+
+<style is:global>
+  /* Scoped by nesting: Astro cannot put its scope attribute on the root
+     element rendered by <Panel>, so every rule hangs off .home-plate. */
+  .home-plate {
+    /* No black on the sign bar: the photographed yellow face *is* the sign, and
+       the wayfinding is set in ink straight onto it. The panels stay in place
+       for geometry, hit area and lighting — they just stop painting. */
+    .gate,
+    .identity,
+    .langs,
+    .clock {
+      color: var(--sign-ink);
+    }
+
+  /* Every length here is in the plate's natural pixel space: PlateScene scales
+     the whole block, so these numbers behave like a fixed 2754px-wide canvas. */
+
+  .gate {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 30px 40px 36px;
+  }
+
+  .gate__id {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  .gate__row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  /* Centred on its sign; the panel itself carries the black. */
+  .gate__label {
+    margin: auto;
+    font-weight: 900;
+    line-height: 0.88;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .gate__arrow {
+    width: 96px;
+    height: 96px;
+    flex: none;
+    transition: transform 220ms ease;
+  }
+
+  .gate:hover .gate__arrow {
+    transform: translate(0, 14px);
+  }
+
+  .gate:nth-of-type(3):hover .gate__arrow {
+    transform: translate(14px, -14px);
+  }
+
+  .identity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 28px 40px;
+  }
+
+  .identity__name {
+    font-size: 74px;
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .identity__tag {
+    margin-top: 8px;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  .langs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .langs__pick {
+    padding: 8px 10px;
+    font-size: 40px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    color: inherit;
+    text-decoration: none;
+    opacity: 0.62;
+  }
+
+  .langs__pick:hover {
+    opacity: 0.85;
+  }
+
+  .langs__pick.is-on {
+    opacity: 1;
+    box-shadow: inset 0 -8px 0 currentColor;
+  }
+
+  .clock {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .clock time {
+    font-size: 72px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+
+  /* The two small cells sit at the far, shaded end of the sign, where ink alone
+     reads as washed out — a touch more weight and less transparency holds them. */
+  .langs,
+  .clock {
+    font-weight: 900;
+  }
+
+  .clock__zone {
+    align-self: flex-start;
+    margin-top: 30px;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    opacity: 0.7;
+  }
+
+  .current {
+    display: flex;
+    flex-direction: column;
+    padding: 56px 60px;
+    color: var(--panel-ink);
+  }
+
+  .current__title {
+    margin: 0;
+    font-size: 82px;
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+
+  .card {
+    display: flex;
+    gap: 40px;
+    margin-top: 44px;
+    padding-top: 40px;
+    border-top: 4px solid color-mix(in srgb, var(--panel-ink) 18%, transparent);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .card__thumb {
+    width: 380px;
+    aspect-ratio: 4 / 3;
+    flex: none;
+  }
+
+  .card__body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .card__status {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  .dot {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    border: 4px solid currentColor;
+  }
+
+  .dot--live {
+    background: #12a150;
+    border-color: #12a150;
+  }
+
+  .card__name {
+    margin-top: 12px;
+    font-size: 58px;
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .card__role {
+    margin-top: 12px;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.65;
+  }
+
+  .card__blurb {
+    margin-top: 22px;
+    font-size: 34px;
+    line-height: 1.45;
+    opacity: 0.82;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card__cta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: auto;
+    padding-top: 24px;
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .cta__arrow {
+    width: 46px;
+    height: 46px;
+    transition: transform 200ms ease;
+  }
+
+  .card:hover .cta__arrow,
+  .screen:hover .cta__arrow {
+    transform: translateX(14px);
+  }
+
+  /* The two screens read as printed sheets behind glass, not as switched-off
+     displays: white ground, black type. */
+  .screen {
+    display: flex;
+    flex-direction: column;
+    padding: 40px;
+    color: var(--panel-ink);
+  }
+
+  .screen--art {
+    padding: 46px;
+  }
+
+  .screen__thumb {
+    flex: 1;
+    width: 100%;
+  }
+
+  .screen__eyebrow {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  .screen__name {
+    margin: 18px 0 16px;
+    font-size: 46px;
+    font-weight: 900;
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  /* This screen is the narrowest panel on the plate, so its type is set down
+     from the card defaults: at the full size the status line ran wider than the
+     frame and pushed the bullet out through the edge. */
+  .screen--text .screen__eyebrow {
+    font-size: 25px;
+    letter-spacing: 0.2em;
+  }
+
+  .screen--text .screen__name {
+    font-size: 42px;
+  }
+
+  .screen--text .card__status {
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 24px;
+    letter-spacing: 0.14em;
+  }
+
+  .screen--text .screen__role {
+    margin-top: 14px;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.62;
+  }
+
+  .screen__go {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: auto;
+    padding-top: 20px;
+  }
+
+  .outbound {
+    display: flex;
+  }
+
+  .outbound__link {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 0 30px;
+    color: var(--panel-ink);
+    text-decoration: none;
+    font-size: 52px;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+  }
+
+  .outbound__link + .outbound__link {
+    border-left: 4px solid color-mix(in srgb, var(--panel-ink) 16%, transparent);
+  }
+
+  .outbound__arrow {
+    width: 52px;
+    height: 52px;
+    transition: transform 200ms ease;
+  }
+
+  .outbound__link:hover .outbound__arrow {
+    transform: translate(12px, -12px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gate__arrow,
+    .cta__arrow,
+    .outbound__arrow {
+      transition: none;
+    }
+  }
+  }
+</style>

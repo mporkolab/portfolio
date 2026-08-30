@@ -1,0 +1,42 @@
+---
+interface Props {
+  label: string;
+  /** `dark` inverts the placeholder for use on the unlit screens. */
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+const { label, tone = 'light', class: className = '' } = Astro.props;
+// `dark` means a dark surface, so the placeholder draws in the light ink used
+// everywhere off-panel — not the sign's ink, which is black.
+const ink = tone === 'dark' ? 'var(--ground-ink)' : 'var(--panel-ink)';
+---
+<!-- Placeholder until real screenshots are supplied; never presented as a shipped image. -->
+<div
+  class={`thumb relative overflow-hidden ${className}`}
+  style={`--thumb-ink:${ink}`}
+  role="img"
+  aria-label={label}
+>
+  <div
+    class="absolute inset-0 opacity-[0.12]"
+    style="background-image: repeating-linear-gradient(-45deg, var(--thumb-ink) 0 2px, transparent 2px 12px);"
+  >
+  </div>
+  <div class="absolute inset-0 flex items-center justify-center p-2">
+    <span class="thumb__label text-center font-bold uppercase tracking-[0.2em]">
+      {label}
+    </span>
+  </div>
+</div>
+
+<style>
+  .thumb {
+    background: color-mix(in srgb, var(--thumb-ink) 6%, transparent);
+    border: 2px solid color-mix(in srgb, var(--thumb-ink) 22%, transparent);
+  }
+
+  .thumb__label {
+    color: color-mix(in srgb, var(--thumb-ink) 55%, transparent);
+    font-size: clamp(0.6rem, 1.2cqw, 2rem);
+  }
+</style>

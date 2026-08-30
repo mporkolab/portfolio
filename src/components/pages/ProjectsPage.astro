@@ -1,0 +1,74 @@
+---
+import PageShell from '../PageShell.astro';
+import Arrow from '../Arrow.astro';
+import Thumb from '../Thumb.astro';
+import { t, path, type Lang } from '../../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const tr = t(lang);
+
+const here = Astro.url.pathname.replace(/^\/hu(?=\/|$)/, '') || '/';
+
+const projects = [
+  {
+    href: path(lang, '/projects/edortech'),
+    title: tr('p.edortech.title'),
+    role: tr('p.edortech.role'),
+    blurb: tr('p.edortech.blurb'),
+    status: tr('board.status.live'),
+    live: true,
+  },
+  {
+    href: path(lang, '/projects/football-predictor'),
+    title: tr('p.predictor.title'),
+    role: tr('p.predictor.role'),
+    blurb: tr('p.predictor.blurb'),
+    status: tr('board.status.dev'),
+    live: false,
+  },
+];
+---
+<PageShell lang={lang} title={tr('projects.title')} eyebrow="Gate A2">
+  <!-- The controls a visitor actually wants at the top of a list page: the way
+       back, and the language. -->
+  <div class="flex items-center justify-between gap-4">
+    <a
+      href={path(lang, '/')}
+      data-astro-transition="back"
+      class="group flex items-center gap-2 border-2 border-panel-ink px-3 py-2 text-xs sm:text-sm font-black uppercase tracking-[0.18em] hover:bg-panel-ink hover:text-panel transition-colors"
+    >
+      <Arrow dir="back" class="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:-translate-x-1" />
+      {tr('nav.backShort')}
+    </a>
+
+    <span class="flex items-center gap-1 text-xs sm:text-sm font-black uppercase tracking-[0.18em]">
+      <a href={path('en', here)} hreflang="en"
+        class={`px-2 py-1 ${lang === 'en' ? 'bg-panel-ink text-panel' : 'text-panel-ink/45 hover:text-panel-ink'}`}>EN</a>
+      <a href={path('hu', here)} hreflang="hu"
+        class={`px-2 py-1 ${lang === 'hu' ? 'bg-panel-ink text-panel' : 'text-panel-ink/45 hover:text-panel-ink'}`}>HU</a>
+    </span>
+  </div>
+
+  <ul class="mt-8 sm:mt-12">
+    {projects.map((p) => (
+      <li>
+        <a href={p.href} class="panel-box group flex flex-col sm:flex-row gap-5 sm:gap-8 border-t-2 border-panel-ink py-6 sm:py-10 hover:bg-panel-ink/[0.04] transition-colors">
+          <Thumb label={p.title} class="w-full sm:w-64 aspect-[16/9] shrink-0" />
+          <div class="min-w-0 flex-1">
+            <p class="flex items-center gap-2 text-[0.6rem] sm:text-xs font-bold uppercase tracking-[0.25em] text-panel-ink/60">
+              <span class={p.live ? 'inline-block w-2 h-2 bg-live' : 'inline-block w-2 h-2 border-2 border-panel-ink/60'}></span>
+              {p.status}
+            </p>
+            <h2 class="mt-2 text-2xl sm:text-4xl font-black uppercase tracking-tight leading-none">{p.title}</h2>
+            <p class="mt-2 text-xs sm:text-sm font-bold uppercase tracking-wide text-panel-ink/60">{p.role}</p>
+            <p class="mt-3 max-w-2xl text-sm sm:text-base leading-relaxed text-panel-ink/80">{p.blurb}</p>
+            <p class="mt-4 flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-[0.2em]">
+              {tr('board.readCase')}
+              <Arrow dir="right" class="w-5 h-5 transition-transform group-hover:translate-x-2" />
+            </p>
+          </div>
+        </a>
+      </li>
+    ))}
+  </ul>
+</PageShell>

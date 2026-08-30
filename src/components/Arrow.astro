@@ -1,0 +1,21 @@
+---
+interface Props {
+  /** down = destination below, out = leaves the site, right = continue */
+  dir?: 'down' | 'out' | 'right' | 'back';
+  class?: string;
+}
+const { dir = 'right', class: className = '' } = Astro.props;
+const rotation = { down: 'rotate-90', out: '-rotate-45', right: '', back: 'rotate-180' }[dir];
+---
+<svg
+  class={`${rotation} ${className}`}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="3"
+  stroke-linecap="square"
+  stroke-linejoin="miter"
+  aria-hidden="true"
+>
+  <path d="M4 12h16M13 5l7 7-7 7" />
+</svg>

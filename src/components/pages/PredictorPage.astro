@@ -1,0 +1,20 @@
+---
+import PageShell from '../PageShell.astro';
+import Thumb from '../Thumb.astro';
+import { t, path, type Lang } from '../../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const tr = t(lang);
+---
+<PageShell crumb={tr('nav.project')} up={{ href: path(lang, '/projects'), label: tr('nav.backProjects') }} lang={lang} title={tr('p.predictor.title')} eyebrow={`${tr('projects.title')} — ${tr('board.status.dev')}`}>
+  <div class="max-w-4xl">
+    <p class="text-sm sm:text-base font-bold uppercase tracking-[0.2em] text-panel-ink/60">{tr('p.predictor.role')}</p>
+    <p class="mt-5 text-xl sm:text-2xl font-bold leading-snug">{tr('p.predictor.blurb')}</p>
+
+    <Thumb label={tr('p.predictor.title')} class="mt-10 w-full aspect-[16/9]" />
+
+    <p class="mt-10 border-t-2 border-panel-ink pt-6 text-xs sm:text-sm font-bold uppercase tracking-[0.25em] text-panel-ink/50">
+      {tr('p.predictor.note')}
+    </p>
+  </div>
+</PageShell>

@@ -1,0 +1,21 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ProjectsPage from '../../components/pages/ProjectsPage.astro';
+import ProjectsPlate from '../../components/plate/ProjectsPlate.astro';
+import { projectPages } from '../../lib/projects';
+
+
+import { cameraTurn } from '../../lib/transitions';
+
+const lang = 'hu' as const;
+const pages = projectPages();
+---
+<Layout title="Porkoláb Martin | Projektek" lang={lang}>
+  <div class="wide-only" transition:name="scene" transition:animate={cameraTurn}>
+    <ProjectsPlate lang={lang} page={1} items={pages[0]} hasNext={pages.length > 1} />
+  </div>
+  <div class="narrow-only">
+    <ProjectsPage lang={lang} />
+  </div>
+</Layout>
+

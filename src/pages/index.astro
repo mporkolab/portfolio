@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Board from '../components/Board.astro';
+import HomePlate from '../components/plate/HomePlate.astro';
+
+
+import { cameraTurn } from '../lib/transitions';
+
+const lang = 'en' as const;
+---
+<Layout title="Porkoláb Martin | Portfolio" lang={lang}>
+  <!-- A photographed terminal cannot reflow, so narrow viewports get the
+       stacked board instead and never fetch the plate. -->
+  <div class="wide-only" transition:name="scene" transition:animate={cameraTurn}>
+    <HomePlate lang={lang} />
+  </div>
+  <div class="narrow-only">
+    <Board lang={lang} />
+  </div>
+</Layout>
+

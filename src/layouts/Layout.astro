@@ -1,0 +1,174 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import { getImage } from 'astro:assets';
+import plateHome from '../assets/bigger-bg.jpeg';
+import plateWall from '../assets/plate-wall.jpeg';
+import plateAbout from '../assets/plate-about.jpeg';
+import '../styles/global.css';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  title: string;
+  lang: Lang;
+  description?: string;
+}
+
+const { title, lang, description = 'Porkoláb Martin — portfolio' } = Astro.props;
+
+// The turn between two photographed rooms only works if the room you are turning
+// towards is already decoded. Warmed after load, and only where plates are used.
+const plates = await Promise.all(
+  [plateHome, plateWall, plateAbout].map((src) =>
+    getImage({ src, width: 1600, format: 'avif', quality: 68 }),
+  ),
+);
+const plateUrls = plates.map((image) => image.src);
+---
+
+<!doctype html>
+<!--
+THESIS: The portfolio as a high-speed, hyper-legible transit corridor: read the concourse sign, pick a destination, reach the work.
+OWN-WORLD: Terminal wayfinding — an overhead sign bar in deep blue over illuminated light-box panels, strict arrows, massive uppercase Inter.
+STORY: The visitor sees three destinations overhead (Profile, Projects, Contact), the current work and the featured project below, and the outbound gates last.
+FORM: Terminal Wayfinding (challenger-wayfinding), recoloured deep blue via --sign.
+-->
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>{title}</title>
+
+    <ClientRouter />
+
+    <script is:inline define:vars={{ plateUrls }}>
+      // Warm the other plates once this page is settled. Wide viewports only:
+      // narrow ones never render a plate, and should not pay for one.
+      window.addEventListener('load', () => {
+        if (!window.matchMedia('(min-width: 1024px) and (min-aspect-ratio: 1 / 1)').matches) return;
+        if (navigator.connection?.saveData) return;
+        const warm = () => plateUrls.forEach((url) => { new Image().src = url; });
+        'requestIdleCallback' in window ? requestIdleCallback(warm, { timeout: 3000 }) : setTimeout(warm, 1200);
+      });
+    </script>
+  </head>
+  <body
+    class="concourse bg-ground text-ground-ink font-sans antialiased overflow-x-hidden"
+    style={`--concourse-image:url(${plateUrls[0]})`}
+  >
+    <!--
+      Camera-turn blur, the way a game does it: the smear runs along the axis the
+      camera is sweeping (horizontal), never across it, and its length tracks the
+      angular velocity rather than the elapsed time. CSS blur() is isotropic, so
+      the directional version has to come from an SVG filter; the transition steps
+      through these fixed strengths instead of interpolating, which is invisible
+      at this speed.
+    -->
+    <svg class="turn-blur-defs" aria-hidden="true" focusable="false">
+      <filter id="turn-blur-1" x="-30%" y="-10%" width="160%" height="120%" color-interpolation-filters="sRGB">
+        <feGaussianBlur stdDeviation="6 0" />
+      </filter>
+      <filter id="turn-blur-2" x="-30%" y="-10%" width="160%" height="120%" color-interpolation-filters="sRGB">
+        <feGaussianBlur stdDeviation="16 0" />
+      </filter>
+      <filter id="turn-blur-3" x="-30%" y="-10%" width="160%" height="120%" color-interpolation-filters="sRGB">
+        <feGaussianBlur stdDeviation="30 0" />
+      </filter>
+      <filter id="turn-blur-4" x="-30%" y="-10%" width="160%" height="120%" color-interpolation-filters="sRGB">
+        <feGaussianBlur stdDeviation="44 0" />
+      </filter>
+    </svg>
+
+    <slot />
+
+    <script>
+      // Switching language lands on the same room in another language, so the
+      // camera has no reason to turn: a pan that ends where it started reads as
+      // a glitch. The flag has to be re-set inside the transition as well —
+      // Astro copies the new document's <html> attributes over mid-swap, which
+      // would otherwise drop it half way through the animation.
+      const samePlace = (from: URL, to: URL) => {
+        const room = (url: URL) => url.pathname.replace(/^\/hu(?=\/|$)/, '').replace(/\/$/, '') || '/';
+        return room(from) === room(to);
+      };
+      let holding = false;
+      const holdStill = () => document.documentElement.setAttribute('data-no-turn', '');
+
+      document.addEventListener('astro:before-preparation', (event) => {
+        const move = event as unknown as {
+          from: URL;
+          to: URL;
+          direction: string;
+          sourceElement?: Element;
+        };
+
+        holding = samePlace(move.from, move.to);
+        if (holding) holdStill();
+
+        // Astro's router calls every link click a "forward" navigation — it does
+        // not read data-astro-transition off the link (that attribute is only
+        // ever written to <html>). The direction is writable here, though, so
+        // this is where a link marked as a way back becomes one: without it the
+        // camera turned the same way coming and going.
+        const marked = move.sourceElement?.closest?.('[data-astro-transition]');
+        if (marked?.getAttribute('data-astro-transition') === 'back') {
+          move.direction = 'back';
+        }
+      });
+
+      // The swap replaces <html>'s attributes with the incoming document's, and
+      // it happens at the *start* of the animation, not the end — so the flag
+      // has to be put back, and only dropped once the transition is really over.
+      document.addEventListener('astro:after-swap', () => {
+        if (holding) holdStill();
+      });
+      document.addEventListener('astro:before-swap', (event) => {
+        const swap = event as unknown as { viewTransition?: { finished: Promise<void> } };
+        if (!holding) return;
+        swap.viewTransition?.finished.finally(() => {
+          holding = false;
+          document.documentElement.removeAttribute('data-no-turn');
+        });
+      });
+    </script>
+
+    <script>
+      // Terminal clocks: the time where the work is made, which is Budapest —
+      // a departures board shows local time, not UTC. Minute resolution,
+      // wherever a [data-clock] sits.
+      //
+      // Module scripts run once per full page load, never again on a client-side
+      // navigation, so the clock has to be re-bound to the new document's <time>
+      // elements on every page load — that is why it read --:-- on any page you
+      // reached by clicking rather than by reloading.
+      const inBudapest = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Europe/Budapest',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+
+      const tick = () => {
+        const time = inBudapest.format(new Date());
+        document.querySelectorAll<HTMLTimeElement>('[data-clock]').forEach((clock) => {
+          clock.textContent = time;
+          clock.dateTime = time;
+        });
+      };
+
+      tick();
+      setInterval(tick, 15_000);
+      document.addEventListener('astro:page-load', tick);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,63 @@
+---
+import BoardHeader from './BoardHeader.astro';
+import Arrow from './Arrow.astro';
+import { t, path, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  title: string;
+  /** Small line above the title: gate number, status, breadcrumb. */
+  eyebrow?: string;
+  /** Replaces the header wordmark with where you are. */
+  crumb?: string;
+  /** A second way out, sitting on the sign above the title. Case studies use it
+   *  to step back to the wall they came from. */
+  up?: { href: string; label: string };
+}
+const { lang, title, eyebrow, crumb, up } = Astro.props;
+const tr = t(lang);
+---
+
+<main class="min-h-screen px-3 py-8 sm:px-14 sm:py-20 flex justify-center">
+  <div class="w-full max-w-[1360px] border-x-[10px] border-t-[10px] border-b-[14px] border-frame shadow-[0_40px_90px_rgba(0,0,0,0.7)]">
+    <BoardHeader lang={lang} crumb={crumb} />
+
+    <div class="bg-sign text-sign-ink px-5 py-8 sm:px-12 sm:py-14">
+      {
+        up && (
+          <a
+            href={up.href}
+            data-astro-transition="back"
+            class="group mb-6 inline-flex items-center gap-2 border-[3px] border-sign-ink px-3 py-2 text-[0.65rem] sm:text-sm font-black uppercase tracking-[0.2em] hover:bg-sign-ink hover:text-sign transition-colors"
+          >
+            <Arrow dir="back" class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 transition-transform group-hover:-translate-x-1" />
+            {up.label}
+          </a>
+        )
+      }
+      {
+        eyebrow && (
+          <p class="text-[0.65rem] sm:text-xs font-bold uppercase tracking-[0.35em] text-sign-ink/60">
+            {eyebrow}
+          </p>
+        )
+      }
+      <h1 class="mt-3 text-4xl sm:text-7xl font-black uppercase tracking-tighter leading-[0.9]">
+        {title}
+      </h1>
+    </div>
+
+    <div class="bg-panel text-panel-ink px-5 py-8 sm:px-12 sm:py-14">
+      <slot />
+    </div>
+
+    <a
+      href={path(lang, '/')}
+      data-astro-transition="back"
+      class="group flex items-center gap-3 bg-sign text-sign-ink hover:bg-sign-hover transition-colors px-5 py-5 sm:px-12 sm:py-7 border-t-[3px] border-frame"
+    >
+      <Arrow dir="back" class="w-7 h-7 sm:w-9 sm:h-9 transition-transform group-hover:-translate-x-2" />
+      <span class="text-lg sm:text-2xl font-black uppercase tracking-[0.15em]">{tr('nav.back')}</span>
+    </a>
+  </div>
+</main>
