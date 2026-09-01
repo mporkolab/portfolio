@@ -78,25 +78,24 @@ export const ui = {
     'card.authority': 'Terminal authority',
     'card.holder': 'Holder',
     'card.roleLabel': 'Clearance',
-    'card.role': 'Builds end to end',
     'card.photo': 'Porkoláb Martin, portrait',
     'card.issued': 'Issued',
     'card.issuedValue': 'Budapest',
     'card.stub': 'Return',
-    'about.storyTitle': 'End to end',
     'about.lede':
-      'I am Porkoláb Martin. I design and build software end to end — from the first concept to the deployed site.',
+      'I am Porkoláb Martin, a student at the Faculty of Informatics of Eötvös Loránd University.',
+    // Paragraphs are split on newlines where this is rendered.
     'about.body':
-      'That means one person carrying a project the whole way: the idea, the interface, the front end, the back end, and the deploy. My most recent client project, edortech.hu, was delivered exactly that way.',
-    'about.skillsTitle': 'Skills',
-    'about.skills': 'Astro · TypeScript · Tailwind CSS · Three.js · Machine learning',
+      'Computers drew me in from a very young age, so this is the field I imagined my future in. I earned my software developer and tester technician qualification back in secondary school.\n' +
+      'I strive for perfection and for giving my very best.\n' +
+      'I learn quickly and adapt fast to new environments and technologies.\n' +
+      'In my free time I play video games, work on hobby projects, do sports, and try to enjoy life.',
     'about.langTitle': 'Languages',
     'about.langs': 'Hungarian · English',
 
     'projects.title': 'Projects',
 
     'contact.title': 'Contact',
-    'contact.direct': 'Or write directly',
     'form.name': 'Name',
     'form.email': 'Email',
     'form.message': 'Message',
@@ -153,25 +152,23 @@ export const ui = {
     'card.authority': 'Terminál üzemeltetés',
     'card.holder': 'Kártyabirtokos',
     'card.roleLabel': 'Jogosultság',
-    'card.role': 'Végponttól végpontig épít',
     'card.photo': 'Porkoláb Martin arcképe',
     'card.issued': 'Kiállítva',
     'card.issuedValue': 'Budapest',
     'card.stub': 'Vissza',
-    'about.storyTitle': 'Végponttól végpontig',
     'about.lede':
-      'Porkoláb Martin vagyok. Szoftvereket tervezek és építek végponttól végpontig — az első koncepciótól az élesített oldalig.',
+      'Porkoláb Martin vagyok, az Eötvös Loránd Tudományegyetem Informatikai Karának hallgatója.',
     'about.body':
-      'Ez azt jelenti, hogy egy ember viszi végig a projektet: az ötletet, a felületet, a frontendet, a backendet és a deployt. A legutóbbi ügyfélprojektem, az edortech.hu, pontosan így készült.',
-    'about.skillsTitle': 'Készségek',
-    'about.skills': 'Astro · TypeScript · Tailwind CSS · Three.js · Gépi tanulás',
+      'Egészen kicsi korom óta beszippantott a számítógépek világa, ezért ebben a szakmában gondoltam el a jövőm. Már középiskolában megszereztem a szoftverfejlesztő- és tesztelő technikusi minősítésemet.\n' +
+      'Próbálok a tökéletességre törekedni, a maximumot nyújtani.\n' +
+      'Gyorsan tanulok és adaptálódok új környezetekhez, technológiákhoz.\n' +
+      'A szabadidőmben videójátékokkal játszom, hobbiprojekteken dolgozom, sportolok és próbálom élvezni az életet.',
     'about.langTitle': 'Nyelvek',
     'about.langs': 'Magyar · Angol',
 
     'projects.title': 'Projektek',
 
     'contact.title': 'Kapcsolat',
-    'contact.direct': 'Vagy írj közvetlenül',
     'form.name': 'Név',
     'form.email': 'Email-cím',
     'form.message': 'Üzenet',

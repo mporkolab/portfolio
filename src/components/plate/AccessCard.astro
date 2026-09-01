@@ -18,10 +18,10 @@ const here = currentPath(Astro.url.pathname);
 const scene = await getImage({ src: backdrop, width: 1600, format: 'avif', quality: 55 });
 
 // A passport's machine-readable zone, kept honest: it says what the site says.
-const mrz = [
-  'PXHUNPORKOLAB<<MARTIN<<<<<<<<<<<<<<<<<<<<<<<',
-  'FULLSTACK<<DESIGN<BUILD<DEPLOY<<<<<<<<<<<<<<',
-];
+const mrz = ['PXHUNPORKOLAB<<MARTIN<<<<<<<<<<<<<<<<<<<<<<<'];
+
+// The story reads as paragraphs, not one block.
+const story = tr('about.body').split('\n');
 ---
 
 <main class="checkpoint" style={`--scene:url(${scene.src})`}>
@@ -69,15 +69,10 @@ const mrz = [
         </p>
 
         <div class="grid">
-          <p class="field">
-            <span class="field__label">{tr('about.storyTitle')}</span>
-            <span class="field__value">{tr('about.body')}</span>
-          </p>
+          <div class="field">
+            {story.map((para) => <p class="field__value">{para}</p>)}
+          </div>
           <div class="grid__stack">
-            <p class="field">
-              <span class="field__label">{tr('about.skillsTitle')}</span>
-              <span class="field__value field__value--caps">{tr('about.skills')}</span>
-            </p>
             <p class="field">
               <span class="field__label">{tr('about.langTitle')}</span>
               <span class="field__value field__value--caps">{tr('about.langs')}</span>
@@ -271,6 +266,7 @@ const mrz = [
   }
 
   .field__value {
+    margin: 0;
     font-size: clamp(0.82rem, 1.15vw, 1rem);
     line-height: 1.5;
     color: color-mix(in srgb, var(--panel-ink) 82%, transparent);

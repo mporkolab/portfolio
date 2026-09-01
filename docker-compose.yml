@@ -5,6 +5,9 @@ services:
       args:
         # A prefixes második kiadás útvonala (/ nélkül). A gyökér mindig épül.
         BASE_PATH: "${BASE_PATH:-portfolio}"
+        PUBLIC_CONTACT_EMAIL: "${PUBLIC_CONTACT_EMAIL:-}"
+        PUBLIC_CONTACT_ENDPOINT: "${PUBLIC_CONTACT_ENDPOINT:-}"
+        PUBLIC_CONTACT_ACCESS_KEY: "${PUBLIC_CONTACT_ACCESS_KEY:-}"
     image: portfolio:latest
     # Rögzített név, hogy a reverse proxy stabil hosztnéven érje el.
     container_name: portfolio

@@ -8,13 +8,11 @@ const tr = t(lang);
 <PageShell lang={lang} title={tr('about.title')} eyebrow="Gate A1">
   <div class="max-w-4xl">
     <p class="text-xl sm:text-3xl font-bold leading-snug">{tr('about.lede')}</p>
-    <p class="mt-6 text-base sm:text-xl leading-relaxed text-panel-ink/80">{tr('about.body')}</p>
+    {tr('about.body').split('\n').map((para) => (
+      <p class="mt-6 text-base sm:text-xl leading-relaxed text-panel-ink/80">{para}</p>
+    ))}
 
-    <dl class="mt-10 sm:mt-14 grid grid-cols-1 sm:grid-cols-2 gap-8 border-t-2 border-panel-ink pt-8">
-      <div>
-        <dt class="text-xs font-bold uppercase tracking-[0.3em] text-panel-ink/60">{tr('about.skillsTitle')}</dt>
-        <dd class="mt-3 text-lg sm:text-2xl font-black uppercase tracking-tight leading-tight">{tr('about.skills')}</dd>
-      </div>
+    <dl class="mt-10 sm:mt-14 border-t-2 border-panel-ink pt-8">
       <div>
         <dt class="text-xs font-bold uppercase tracking-[0.3em] text-panel-ink/60">{tr('about.langTitle')}</dt>
         <dd class="mt-3 text-lg sm:text-2xl font-black uppercase tracking-tight leading-tight">{tr('about.langs')}</dd>

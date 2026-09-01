@@ -10,6 +10,14 @@ RUN npm ci
 # path bele van égetve minden linkbe, ezért kell két külön kimenet.
 ARG BASE_PATH="portfolio"
 
+# A kapcsolati űrlap beállításai build-időben égnek a statikus oldalba.
+ARG PUBLIC_CONTACT_EMAIL=""
+ARG PUBLIC_CONTACT_ENDPOINT=""
+ARG PUBLIC_CONTACT_ACCESS_KEY=""
+ENV PUBLIC_CONTACT_EMAIL=$PUBLIC_CONTACT_EMAIL \
+    PUBLIC_CONTACT_ENDPOINT=$PUBLIC_CONTACT_ENDPOINT \
+    PUBLIC_CONTACT_ACCESS_KEY=$PUBLIC_CONTACT_ACCESS_KEY
+
 COPY . .
 RUN BASE_PATH= npm run build && mv dist /site-root
 RUN BASE_PATH="$BASE_PATH" npm run build && mv dist /site-prefixed

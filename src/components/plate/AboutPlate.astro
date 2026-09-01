@@ -24,14 +24,11 @@ const here = currentPath(Astro.url.pathname);
   </Panel>
 
   <Panel quad={q.story} class="sheet">
-    <span class="sheet__eyebrow">{tr('about.storyTitle')}</span>
-    <p class="sheet__body">{tr('about.body')}</p>
+    {tr('about.body').split('\n').map((para) => <p class="sheet__body">{para}</p>)}
   </Panel>
 
   <Panel quad={q.facts} class="sheet">
-    <span class="sheet__eyebrow">{tr('about.skillsTitle')}</span>
-    <p class="sheet__list">{tr('about.skills')}</p>
-    <span class="sheet__eyebrow sheet__eyebrow--gap">{tr('about.langTitle')}</span>
+    <span class="sheet__eyebrow">{tr('about.langTitle')}</span>
     <p class="sheet__list">{tr('about.langs')}</p>
   </Panel>
 
