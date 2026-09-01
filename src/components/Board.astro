@@ -2,6 +2,7 @@
 import BoardHeader from './BoardHeader.astro';
 import Arrow from './Arrow.astro';
 import Thumb from './Thumb.astro';
+import edortechShot from '../assets/edortech_landing.png';
 import { t, path, links, type Lang } from '../i18n/ui';
 
 interface Props {
@@ -75,7 +76,7 @@ const gates = [
             href={path(lang, '/projects/edortech')}
             class="panel-box group mt-6 sm:mt-10 flex gap-4 sm:gap-6 border-t-2 border-panel-ink pt-5 sm:pt-8 hover:bg-panel-ink/[0.04] transition-colors"
           >
-            <Thumb label={tr('p.edortech.title')} class="w-28 sm:w-44 aspect-[4/3] shrink-0" />
+            <Thumb label={tr('p.edortech.title')} src={edortechShot} sizes="176px" class="w-28 sm:w-44 aspect-[4/3] shrink-0" />
             <div class="min-w-0">
               <p class="flex items-center gap-2 text-[0.6rem] sm:text-xs font-bold uppercase tracking-[0.25em] text-panel-ink/60">
                 <span class="inline-block w-2 h-2 bg-live"></span>
@@ -110,7 +111,7 @@ const gates = [
             href={path(lang, '/projects/edortech')}
             class="panel-box group mt-6 sm:mt-8 flex-1 flex flex-col border-t-2 border-panel-ink pt-5 sm:pt-8 hover:bg-panel-ink/[0.04] transition-colors"
           >
-            <Thumb label={tr('p.edortech.title')} class="w-full aspect-[16/9]" />
+            <Thumb label={tr('p.edortech.title')} src={edortechShot} sizes="(max-width: 640px) 100vw, 640px" class="w-full aspect-[16/9]" />
             <p class="mt-4 flex items-center gap-2 text-[0.6rem] sm:text-xs font-bold uppercase tracking-[0.25em] text-panel-ink/60">
               <span class="inline-block w-2 h-2 bg-live"></span>
               {tr('board.status.live')}

@@ -1,5 +1,6 @@
 import type { Lang } from '../i18n/ui';
 import { t } from '../i18n/ui';
+import edortechShot from '../assets/edortech_landing.png';
 
 /**
  * Everything shown on the wall. Only projects the user has confirmed appear
@@ -8,10 +9,12 @@ import { t } from '../i18n/ui';
 export interface Project {
   slug: string;
   status: 'live' | 'dev';
+  /** A screenshot of the real thing, where one exists. */
+  shot?: ImageMetadata;
 }
 
 export const projects: Project[] = [
-  { slug: 'edortech', status: 'live' },
+  { slug: 'edortech', status: 'live', shot: edortechShot },
   { slug: 'football-predictor', status: 'dev' },
 ];
 

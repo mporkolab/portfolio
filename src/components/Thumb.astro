@@ -1,32 +1,59 @@
 ---
+import { Image } from 'astro:assets';
+
 interface Props {
   label: string;
+  /** A real screenshot. Without one the frame falls back to the placeholder. */
+  src?: ImageMetadata;
+  /** Widths the frame is drawn at, for the srcset. */
+  sizes?: string;
   /** `dark` inverts the placeholder for use on the unlit screens. */
   tone?: 'light' | 'dark';
   class?: string;
 }
-const { label, tone = 'light', class: className = '' } = Astro.props;
+const {
+  label,
+  src,
+  sizes = '(max-width: 640px) 100vw, 900px',
+  tone = 'light',
+  class: className = '',
+} = Astro.props;
 // `dark` means a dark surface, so the placeholder draws in the light ink used
 // everywhere off-panel — not the sign's ink, which is black.
 const ink = tone === 'dark' ? 'var(--ground-ink)' : 'var(--panel-ink)';
 ---
-<!-- Placeholder until real screenshots are supplied; never presented as a shipped image. -->
+<!-- Falls back to a placeholder where no screenshot exists; a placeholder is
+     never presented as a shipped image. -->
 <div
   class={`thumb relative overflow-hidden ${className}`}
   style={`--thumb-ink:${ink}`}
-  role="img"
-  aria-label={label}
+  role={src ? undefined : 'img'}
+  aria-label={src ? undefined : label}
 >
-  <div
-    class="absolute inset-0 opacity-[0.12]"
-    style="background-image: repeating-linear-gradient(-45deg, var(--thumb-ink) 0 2px, transparent 2px 12px);"
-  >
-  </div>
-  <div class="absolute inset-0 flex items-center justify-center p-2">
-    <span class="thumb__label text-center font-bold uppercase tracking-[0.2em]">
-      {label}
-    </span>
-  </div>
+  {src ? (
+    <Image
+      src={src}
+      alt={label}
+      widths={[320, 640, 1280]}
+      sizes={sizes}
+      format="avif"
+      quality={70}
+      class="absolute inset-0 h-full w-full object-cover object-top"
+    />
+  ) : (
+    <>
+      <div
+        class="absolute inset-0 opacity-[0.12]"
+        style="background-image: repeating-linear-gradient(-45deg, var(--thumb-ink) 0 2px, transparent 2px 12px);"
+      >
+      </div>
+      <div class="absolute inset-0 flex items-center justify-center p-2">
+        <span class="thumb__label text-center font-bold uppercase tracking-[0.2em]">
+          {label}
+        </span>
+      </div>
+    </>
+  )}
 </div>
 
 <style>

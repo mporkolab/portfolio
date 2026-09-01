@@ -7,7 +7,7 @@ import plate from '../../assets/plate-wall.jpeg';
 import { PROJECTS_PLATE, projectFrames, projectsSign, projectsPaging } from '../../lib/panels';
 import { quadBounds } from '../../lib/homography';
 import { projectCopy, type Project } from '../../lib/projects';
-import { t, path, type Lang } from '../../i18n/ui';
+import { t, path, type Lang, here as currentPath } from '../../i18n/ui';
 
 interface Props {
   lang: Lang;
@@ -20,7 +20,7 @@ const tr = t(lang);
 
 const frames = projectFrames;
 
-const here = Astro.url.pathname.replace(/^\/hu(?=\/|$)/, '') || '/';
+const here = currentPath(Astro.url.pathname);
 const pageHref = (n: number) => path(lang, n === 1 ? '/projects' : `/projects/page/${n}`);
 
 // The last frame runs off the edge of the shot, so each card is typeset relative
@@ -68,7 +68,7 @@ const frameStyle = (quad: (typeof frames)[number]) => {
           href={path(lang, `/projects/${project.slug}`)}
           label={copy.title}
         >
-          <Thumb label={copy.title} tone="dark" class="frame__thumb" />
+          <Thumb label={copy.title} src={project.shot} sizes="30vw" tone="dark" class="frame__thumb" />
           <span class="frame__status">
             <i class:list={['dot', project.status === 'live' && 'dot--live']} />
             {project.status === 'live' ? tr('board.status.live') : tr('board.status.dev')}

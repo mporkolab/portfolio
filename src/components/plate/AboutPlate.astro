@@ -4,7 +4,7 @@ import Panel from './Panel.astro';
 import Arrow from '../Arrow.astro';
 import plateAbout from '../../assets/plate-about.jpeg';
 import { ABOUT_PLATE, aboutPanels as q } from '../../lib/panels';
-import { t, path, type Lang } from '../../i18n/ui';
+import { t, path, type Lang, here as currentPath } from '../../i18n/ui';
 
 interface Props {
   lang: Lang;
@@ -12,7 +12,7 @@ interface Props {
 const { lang } = Astro.props;
 const tr = t(lang);
 
-const here = Astro.url.pathname.replace(/^\/hu(?=\/|$)/, '') || '/';
+const here = currentPath(Astro.url.pathname);
 ---
 
 <PlateScene plate={plateAbout} width={ABOUT_PLATE.w} height={ABOUT_PLATE.h} class="about">

@@ -3,6 +3,7 @@ import PlateScene from './PlateScene.astro';
 import Panel from './Panel.astro';
 import Arrow from '../Arrow.astro';
 import Thumb from '../Thumb.astro';
+import edortechShot from '../../assets/edortech_landing.png';
 import plateHome from '../../assets/bigger-bg.jpeg';
 import { quadBounds } from '../../lib/homography';
 import { HOME_PLATE, HOME_CONTENT, HOME_SPACE, homePanels as q } from '../../lib/panels';
@@ -81,7 +82,7 @@ const gates = [
   <Panel quad={q.current} surface="sheet" class="current">
     <h2 class="current__title">{tr('board.current')}</h2>
     <a href={path(lang, '/projects/edortech')} class="card">
-      <Thumb label={tr('p.edortech.title')} tone="dark" class="card__thumb" />
+      <Thumb label={tr('p.edortech.title')} src={edortechShot} sizes="25vw" tone="dark" class="card__thumb" />
       <span class="card__body">
         <span class="card__status"><i class="dot dot--live"></i>{tr('board.status.live')}</span>
         <span class="card__name">{tr('p.edortech.title')}</span>
@@ -95,7 +96,7 @@ const gates = [
 
   <Panel quad={q.featuredArt} class="screen screen--art" href={path(lang, '/projects/edortech')}
     label={tr('p.edortech.title')}>
-    <Thumb label={tr('p.edortech.title')} class="screen__thumb" />
+    <Thumb label={tr('p.edortech.title')} src={edortechShot} sizes="35vw" class="screen__thumb" />
   </Panel>
 
   <!-- The whole panel is one link, so a "read the case study" line underneath it

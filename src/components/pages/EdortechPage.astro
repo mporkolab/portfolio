@@ -2,6 +2,7 @@
 import PageShell from '../PageShell.astro';
 import Arrow from '../Arrow.astro';
 import Thumb from '../Thumb.astro';
+import edortechShot from '../../assets/edortech_landing.png';
 import { t, path, links, type Lang } from '../../i18n/ui';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -12,7 +13,7 @@ const tr = t(lang);
     <p class="text-sm sm:text-base font-bold uppercase tracking-[0.2em] text-panel-ink/60">{tr('p.edortech.role')}</p>
     <p class="mt-5 text-xl sm:text-2xl font-bold leading-snug">{tr('p.edortech.blurb')}</p>
 
-    <Thumb label={tr('p.edortech.title')} class="mt-10 w-full aspect-[16/9]" />
+    <Thumb label={tr('p.edortech.title')} src={edortechShot} sizes="(max-width: 640px) 100vw, 896px" class="mt-10 w-full aspect-[16/9]" />
 
     <dl class="mt-10 border-t-2 border-panel-ink pt-8">
       <dt class="text-xs font-bold uppercase tracking-[0.3em] text-panel-ink/60">Stack</dt>
