@@ -187,7 +187,7 @@ const story = tr('about.body').split('\n');
 
   .card__body {
     display: grid;
-    grid-template-columns: minmax(180px, 1fr) 3fr minmax(104px, 0.55fr);
+    grid-template-columns: minmax(160px, 0.8fr) 4fr minmax(104px, 0.5fr);
     align-items: stretch;
   }
 
@@ -202,22 +202,21 @@ const story = tr('about.body').split('\n');
 
   /* The photo box fills its column rather than floating in it: on a pass the
      portrait runs the height of the panel. */
+  /* The frame takes the portrait's own ratio, so nothing is cropped away. */
   .card__photo {
     position: relative;
-    flex: 1;
-    min-height: 190px;
+    flex: none;
+    aspect-ratio: 1205 / 1795;
     overflow: hidden;
     background: color-mix(in srgb, var(--panel-ink) 6%, transparent);
     border: 2px solid color-mix(in srgb, var(--panel-ink) 22%, transparent);
   }
 
-  /* A pass photo is cropped to the head, not to the middle of the frame. */
   .card__portrait {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: center 18%;
+    object-fit: contain;
   }
 
   /* The contact plate of a smart card. */
@@ -288,17 +287,19 @@ const story = tr('about.body').split('\n');
   }
 
   .grid {
-    display: grid;
-    grid-template-columns: 1.35fr 1fr;
-    gap: 26px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
     padding-top: 20px;
     border-top: 3px solid color-mix(in srgb, var(--panel-ink) 15%, transparent);
   }
 
+  /* Pushed to the foot of the card, below the story. */
   .grid__stack {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
+    margin-top: auto;
+    padding-top: 18px;
+    border-top: 3px solid color-mix(in srgb, var(--panel-ink) 15%, transparent);
   }
 
   .stub {
@@ -443,8 +444,6 @@ const story = tr('about.body').split('\n');
     .card__photo {
       width: 96px;
       flex: none;
-      aspect-ratio: 3 / 4;
-      min-height: 0;
     }
 
     .grid {
