@@ -18,7 +18,11 @@ const here = currentPath(Astro.url.pathname);
 const scene = await getImage({ src: backdrop, width: 1600, format: 'avif', quality: 55 });
 
 // A passport's machine-readable zone, kept honest: it says what the site says.
-const mrz = ['PXHUNPORKOLAB<<MARTIN<<<<<<<<<<<<<<<<<<<<<<<'];
+// The strip spans the card, so the line length — not the type size — is what
+// sets how large the glyphs come out.
+const MRZ_COLS = 88;
+const pad = (line: string) => line.padEnd(MRZ_COLS, '<');
+const mrz = [pad('PXHUNPORKOLAB<<MARTIN'), pad('')];
 
 // The story reads as paragraphs, not one block.
 const story = tr('about.body').split('\n');
@@ -136,7 +140,8 @@ const story = tr('about.body').split('\n');
 
   .card {
     position: relative;
-    width: min(100%, 1040px);
+    container-type: inline-size;
+    width: min(100%, 1200px);
     background: var(--panel);
     color: var(--panel-ink);
     border-radius: 18px;
@@ -187,7 +192,7 @@ const story = tr('about.body').split('\n');
 
   .card__body {
     display: grid;
-    grid-template-columns: minmax(240px, 1.5fr) 3.6fr minmax(104px, 0.5fr);
+    grid-template-columns: minmax(240px, 1.4fr) 3.4fr minmax(150px, 0.8fr);
     align-items: stretch;
   }
 
@@ -221,7 +226,7 @@ const story = tr('about.body').split('\n');
 
   /* The contact plate of a smart card. */
   .card__chip {
-    align-self: flex-start;
+    align-self: center;
     width: 54px;
     height: 42px;
     border-radius: 6px;
@@ -382,12 +387,15 @@ const story = tr('about.body').split('\n');
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding: 14px 26px 18px;
+    padding: 14px 20px 18px;
     background: color-mix(in srgb, var(--panel-ink) 5%, transparent);
     border-top: 3px solid color-mix(in srgb, var(--panel-ink) 15%, transparent);
     font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-    font-size: clamp(0.55rem, 0.95vw, 0.8rem);
+    /* 44 glyphs at 0.6em wide plus 0.14em tracking = 32.6em, which is what one
+       card width has to hold — hence the ratio below. */
+    font-size: 1.46cqw;
     letter-spacing: 0.14em;
+    line-height: 1.15;
     color: color-mix(in srgb, var(--panel-ink) 55%, transparent);
     overflow: hidden;
     white-space: nowrap;
