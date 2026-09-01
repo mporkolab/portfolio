@@ -1,7 +1,13 @@
 services:
   portfolio:
-    build: .
+    build:
+      context: .
+      args:
+        # Al-útvonalas proxy mögé: BASE_PATH=portfolio (prefix / nélkül).
+        BASE_PATH: "${BASE_PATH:-}"
     image: portfolio:latest
+    # Rögzített név, hogy a reverse proxy stabil hosztnéven érje el.
+    container_name: portfolio
     ports:
       - "${PORT:-8080}:80"
     restart: unless-stopped
@@ -17,3 +23,4 @@ services:
       - /app/node_modules
     ports:
       - "${DEV_PORT:-4321}:4321"
+

@@ -11,7 +11,11 @@ export const links = {
 /** Prefix a root-relative path with the language segment. English lives at the root. */
 export function path(lang: Lang, to: string): string {
   const clean = to === '/' ? '' : to;
-  return lang === 'en' ? `/${clean.replace(/^\//, '')}` : `/hu/${clean.replace(/^\//, '')}`;
+  // BASE_URL is '/' by default, or '/<prefix>/' when the site is served from a
+  // sub-path behind a reverse proxy.
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+  const rest = clean.replace(/^\//, '');
+  return lang === 'en' ? `${base}/${rest}` : `${base}/hu/${rest}`;
 }
 
 /** The same page in the other language. */
