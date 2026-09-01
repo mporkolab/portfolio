@@ -1,5 +1,5 @@
 ---
-import { t, path, type Lang } from '../i18n/ui';
+import { t, path, type Lang, here as currentPath } from '../i18n/ui';
 
 interface Props {
   lang: Lang;
@@ -10,7 +10,7 @@ const { lang, crumb } = Astro.props;
 const tr = t(lang);
 
 // The same page in the other language: /about <-> /hu/about
-const here = Astro.url.pathname.replace(/^\/hu(?=\/|$)/, '') || '/';
+const here = currentPath(Astro.url.pathname);
 const enHref = path('en', here);
 const huHref = path('hu', here);
 ---

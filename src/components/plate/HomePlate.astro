@@ -6,7 +6,7 @@ import Thumb from '../Thumb.astro';
 import plateHome from '../../assets/bigger-bg.jpeg';
 import { quadBounds } from '../../lib/homography';
 import { HOME_PLATE, HOME_CONTENT, HOME_SPACE, homePanels as q } from '../../lib/panels';
-import { t, path, links, type Lang } from '../../i18n/ui';
+import { t, path, links, type Lang, here as currentPath } from '../../i18n/ui';
 
 interface Props {
   lang: Lang;
@@ -14,7 +14,7 @@ interface Props {
 const { lang } = Astro.props;
 const tr = t(lang);
 
-const here = Astro.url.pathname.replace(/^\/hu(?=\/|$)/, '') || '/';
+const here = currentPath(Astro.url.pathname);
 
 // Inter Black, uppercase, tight tracking runs at roughly this fraction of the
 // font size per character. Sizing from it keeps a long word — Hungarian's

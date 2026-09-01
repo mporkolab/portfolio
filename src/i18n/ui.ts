@@ -18,6 +18,16 @@ export function path(lang: Lang, to: string): string {
   return lang === 'en' ? `${base}/${rest}` : `${base}/hu/${rest}`;
 }
 
+/**
+ * The current page as `path()` wants it: no base prefix, no language segment.
+ * Feeding a raw `Astro.url.pathname` back into `path()` would double the base.
+ */
+export function here(pathname: string): string {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+  const withoutBase = base && pathname.startsWith(base) ? pathname.slice(base.length) : pathname;
+  return withoutBase.replace(/^\/hu(?=\/|$)/, '') || '/';
+}
+
 /** The same page in the other language. */
 export function otherLang(lang: Lang): Lang {
   return lang === 'en' ? 'hu' : 'en';
@@ -69,7 +79,7 @@ export const ui = {
     'card.holder': 'Holder',
     'card.roleLabel': 'Clearance',
     'card.role': 'Builds end to end',
-    'card.photo': 'No photo on file',
+    'card.photo': 'Porkoláb Martin, portrait',
     'card.issued': 'Issued',
     'card.issuedValue': 'Budapest',
     'card.stub': 'Return',
@@ -144,7 +154,7 @@ export const ui = {
     'card.holder': 'Kártyabirtokos',
     'card.roleLabel': 'Jogosultság',
     'card.role': 'Végponttól végpontig épít',
-    'card.photo': 'Nincs fénykép',
+    'card.photo': 'Porkoláb Martin arcképe',
     'card.issued': 'Kiállítva',
     'card.issuedValue': 'Budapest',
     'card.stub': 'Vissza',
