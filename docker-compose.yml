@@ -3,8 +3,8 @@ services:
     build:
       context: .
       args:
-        # Al-útvonalas proxy mögé: BASE_PATH=portfolio (prefix / nélkül).
-        BASE_PATH: "${BASE_PATH:-}"
+        # A prefixes második kiadás útvonala (/ nélkül). A gyökér mindig épül.
+        BASE_PATH: "${BASE_PATH:-portfolio}"
     image: portfolio:latest
     # Rögzített név, hogy a reverse proxy stabil hosztnéven érje el.
     container_name: portfolio

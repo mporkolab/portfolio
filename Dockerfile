@@ -5,23 +5,27 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Al-útvonalas kiszolgáláshoz: --build-arg BASE_PATH=portfolio
-ARG BASE_PATH=""
-ENV BASE_PATH=$BASE_PATH
+# A site kétszer épül meg: egyszer a gyökérre (martinporkolab.hu/), egyszer a
+# $BASE_PATH prefixre (100.71.44.91/portfolio). Egy statikus buildbe a base
+# path bele van égetve minden linkbe, ezért kell két külön kimenet.
+ARG BASE_PATH="portfolio"
 
 COPY . .
-RUN npm run build
+RUN BASE_PATH= npm run build && mv dist /site-root
+RUN BASE_PATH="$BASE_PATH" npm run build && mv dist /site-prefixed
 
 # ---- runtime ----
 FROM nginx:1.27-alpine AS runtime
-ARG BASE_PATH=""
+ARG BASE_PATH="portfolio"
 ENV BASE_PATH=$BASE_PATH
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html/$BASE_PATH
+COPY --from=build /site-root /usr/share/nginx/html
+COPY --from=build /site-prefixed /usr/share/nginx/html/$BASE_PATH
 
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
-  CMD wget -qO- "http://127.0.0.1/$BASE_PATH/" >/dev/null || exit 1
+  CMD wget -qO- "http://127.0.0.1/" >/dev/null \
+   && wget -qO- "http://127.0.0.1/$BASE_PATH/" >/dev/null || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]
