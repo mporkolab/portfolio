@@ -120,30 +120,30 @@ const gates = [
 </PlateScene>
 
 <style is:global>
-  /* Scoped by nesting: Astro cannot put its scope attribute on the root
-     element rendered by <Panel>, so every rule hangs off .home-plate. */
-  .home-plate {
-    /* No black on the sign bar: the photographed yellow face *is* the sign, and
-       the wayfinding is set in ink straight onto it. The panels stay in place
-       for geometry, hit area and lighting — they just stop painting. */
-    .gate,
-    .identity,
-    .langs,
-    .clock {
-      color: var(--sign-ink);
-    }
+  /* Astro cannot put its scope attribute on the root element rendered by
+     <Panel>, so every rule is written out against .home-plate by hand. Nesting
+     would say the same thing, but Safari only learned it in 16.5 and an older
+     iPad drops the whole block on the floor — sign with no wayfinding. */
+  /* No black on the sign bar: the photographed yellow face *is* the sign, and
+  the wayfinding is set in ink straight onto it. The panels stay in place
+  for geometry, hit area and lighting — they just stop painting. */
+  .home-plate .gate,
+  .home-plate .identity,
+  .home-plate .langs,
+  .home-plate .clock {
+    color: var(--sign-ink);
+  }
 
   /* Every length here is in the plate's natural pixel space: PlateScene scales
-     the whole block, so these numbers behave like a fixed 2754px-wide canvas. */
-
-  .gate {
+  the whole block, so these numbers behave like a fixed 2754px-wide canvas. */
+  .home-plate .gate {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     padding: 30px 40px 36px;
   }
 
-  .gate__id {
+  .home-plate .gate__id {
     font-size: 30px;
     font-weight: 700;
     letter-spacing: 0.3em;
@@ -151,7 +151,7 @@ const gates = [
     opacity: 0.7;
   }
 
-  .gate__row {
+  .home-plate .gate__row {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -159,7 +159,7 @@ const gates = [
   }
 
   /* Centred on its sign; the panel itself carries the black. */
-  .gate__label {
+  .home-plate .gate__label {
     margin: auto;
     font-weight: 900;
     line-height: 0.88;
@@ -168,22 +168,22 @@ const gates = [
     white-space: nowrap;
   }
 
-  .gate__arrow {
+  .home-plate .gate__arrow {
     width: 96px;
     height: 96px;
     flex: none;
     transition: transform 220ms ease;
   }
 
-  .gate:hover .gate__arrow {
+  .home-plate .gate:hover .gate__arrow {
     transform: translate(0, 14px);
   }
 
-  .gate:nth-of-type(3):hover .gate__arrow {
+  .home-plate .gate:nth-of-type(3):hover .gate__arrow {
     transform: translate(14px, -14px);
   }
 
-  .identity {
+  .home-plate .identity {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -192,7 +192,7 @@ const gates = [
     padding: 28px 40px;
   }
 
-  .identity__name {
+  .home-plate .identity__name {
     font-size: 74px;
     font-weight: 900;
     line-height: 0.9;
@@ -200,7 +200,7 @@ const gates = [
     text-transform: uppercase;
   }
 
-  .identity__tag {
+  .home-plate .identity__tag {
     margin-top: 8px;
     font-size: 28px;
     font-weight: 700;
@@ -209,14 +209,14 @@ const gates = [
     opacity: 0.7;
   }
 
-  .langs {
+  .home-plate .langs {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
   }
 
-  .langs__pick {
+  .home-plate .langs__pick {
     padding: 8px 10px;
     font-size: 40px;
     font-weight: 900;
@@ -226,16 +226,16 @@ const gates = [
     opacity: 0.62;
   }
 
-  .langs__pick:hover {
+  .home-plate .langs__pick:hover {
     opacity: 0.85;
   }
 
-  .langs__pick.is-on {
+  .home-plate .langs__pick.is-on {
     opacity: 1;
     box-shadow: inset 0 -8px 0 currentColor;
   }
 
-  .clock {
+  .home-plate .clock {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -243,20 +243,20 @@ const gates = [
     font-variant-numeric: tabular-nums;
   }
 
-  .clock time {
+  .home-plate .clock time {
     font-size: 72px;
     font-weight: 900;
     letter-spacing: -0.02em;
   }
 
   /* The two small cells sit at the far, shaded end of the sign, where ink alone
-     reads as washed out — a touch more weight and less transparency holds them. */
-  .langs,
-  .clock {
+  reads as washed out — a touch more weight and less transparency holds them. */
+  .home-plate .langs,
+  .home-plate .clock {
     font-weight: 900;
   }
 
-  .clock__zone {
+  .home-plate .clock__zone {
     align-self: flex-start;
     margin-top: 30px;
     font-size: 26px;
@@ -265,14 +265,14 @@ const gates = [
     opacity: 0.7;
   }
 
-  .current {
+  .home-plate .current {
     display: flex;
     flex-direction: column;
     padding: 56px 60px;
     color: var(--panel-ink);
   }
 
-  .current__title {
+  .home-plate .current__title {
     margin: 0;
     font-size: 82px;
     font-weight: 900;
@@ -281,7 +281,7 @@ const gates = [
     text-transform: uppercase;
   }
 
-  .card {
+  .home-plate .card {
     display: flex;
     gap: 40px;
     margin-top: 44px;
@@ -291,19 +291,19 @@ const gates = [
     text-decoration: none;
   }
 
-  .card__thumb {
+  .home-plate .card__thumb {
     width: 380px;
     aspect-ratio: 4 / 3;
     flex: none;
   }
 
-  .card__body {
+  .home-plate .card__body {
     display: flex;
     flex-direction: column;
     min-width: 0;
   }
 
-  .card__status {
+  .home-plate .card__status {
     display: flex;
     align-items: center;
     gap: 14px;
@@ -314,19 +314,19 @@ const gates = [
     opacity: 0.7;
   }
 
-  .dot {
+  .home-plate .dot {
     width: 20px;
     height: 20px;
     flex: none;
     border: 4px solid currentColor;
   }
 
-  .dot--live {
+  .home-plate .dot--live {
     background: #12a150;
     border-color: #12a150;
   }
 
-  .card__name {
+  .home-plate .card__name {
     margin-top: 12px;
     font-size: 58px;
     font-weight: 900;
@@ -335,7 +335,7 @@ const gates = [
     text-transform: uppercase;
   }
 
-  .card__role {
+  .home-plate .card__role {
     margin-top: 12px;
     font-size: 32px;
     font-weight: 700;
@@ -344,7 +344,7 @@ const gates = [
     opacity: 0.65;
   }
 
-  .card__blurb {
+  .home-plate .card__blurb {
     margin-top: 22px;
     font-size: 34px;
     line-height: 1.45;
@@ -355,7 +355,7 @@ const gates = [
     overflow: hidden;
   }
 
-  .card__cta {
+  .home-plate .card__cta {
     display: flex;
     align-items: center;
     gap: 16px;
@@ -367,36 +367,36 @@ const gates = [
     text-transform: uppercase;
   }
 
-  .cta__arrow {
+  .home-plate .cta__arrow {
     width: 46px;
     height: 46px;
     transition: transform 200ms ease;
   }
 
-  .card:hover .cta__arrow,
-  .screen:hover .cta__arrow {
+  .home-plate .card:hover .cta__arrow,
+  .home-plate .screen:hover .cta__arrow {
     transform: translateX(14px);
   }
 
   /* The two screens read as printed sheets behind glass, not as switched-off
-     displays: white ground, black type. */
-  .screen {
+  displays: white ground, black type. */
+  .home-plate .screen {
     display: flex;
     flex-direction: column;
     padding: 40px;
     color: var(--panel-ink);
   }
 
-  .screen--art {
+  .home-plate .screen--art {
     padding: 46px;
   }
 
-  .screen__thumb {
+  .home-plate .screen__thumb {
     flex: 1;
     width: 100%;
   }
 
-  .screen__eyebrow {
+  .home-plate .screen__eyebrow {
     font-size: 28px;
     font-weight: 700;
     letter-spacing: 0.28em;
@@ -404,7 +404,7 @@ const gates = [
     opacity: 0.6;
   }
 
-  .screen__name {
+  .home-plate .screen__name {
     margin: 18px 0 16px;
     font-size: 46px;
     font-weight: 900;
@@ -414,25 +414,25 @@ const gates = [
   }
 
   /* This screen is the narrowest panel on the plate, so its type is set down
-     from the card defaults: at the full size the status line ran wider than the
-     frame and pushed the bullet out through the edge. */
-  .screen--text .screen__eyebrow {
+  from the card defaults: at the full size the status line ran wider than the
+  frame and pushed the bullet out through the edge. */
+  .home-plate .screen--text .screen__eyebrow {
     font-size: 25px;
     letter-spacing: 0.2em;
   }
 
-  .screen--text .screen__name {
+  .home-plate .screen--text .screen__name {
     font-size: 42px;
   }
 
-  .screen--text .card__status {
+  .home-plate .screen--text .card__status {
     align-items: flex-start;
     gap: 10px;
     font-size: 24px;
     letter-spacing: 0.14em;
   }
 
-  .screen--text .screen__role {
+  .home-plate .screen--text .screen__role {
     margin-top: 14px;
     font-size: 24px;
     font-weight: 700;
@@ -442,18 +442,18 @@ const gates = [
     opacity: 0.62;
   }
 
-  .screen__go {
+  .home-plate .screen__go {
     display: flex;
     justify-content: flex-end;
     margin-top: auto;
     padding-top: 20px;
   }
 
-  .outbound {
+  .home-plate .outbound {
     display: flex;
   }
 
-  .outbound__link {
+  .home-plate .outbound__link {
     min-width: 0;
     flex: 1;
     display: flex;
@@ -469,26 +469,25 @@ const gates = [
     text-transform: uppercase;
   }
 
-  .outbound__link + .outbound__link {
+  .home-plate .outbound__link + .outbound__link {
     border-left: 4px solid color-mix(in srgb, var(--panel-ink) 16%, transparent);
   }
 
-  .outbound__arrow {
+  .home-plate .outbound__arrow {
     width: 52px;
     height: 52px;
     transition: transform 200ms ease;
   }
 
-  .outbound__link:hover .outbound__arrow {
+  .home-plate .outbound__link:hover .outbound__arrow {
     transform: translate(12px, -12px);
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .gate__arrow,
-    .cta__arrow,
-    .outbound__arrow {
+    .home-plate .gate__arrow,
+    .home-plate .cta__arrow,
+    .home-plate .outbound__arrow {
       transition: none;
     }
-  }
   }
 </style>

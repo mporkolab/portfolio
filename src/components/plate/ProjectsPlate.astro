@@ -101,200 +101,199 @@ const frameStyle = (quad: (typeof frames)[number]) => {
 </PlateScene>
 
 <style is:global>
-  /* Nested for the same reason as the home plate: Astro's scope attribute does
-     not reach the root element a child component renders. */
-  .wall {
-    .wall-sign {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 26px 24px;
-      color: var(--sign-ink);
-    }
+  /* Prefixed by hand for the same reason as the home plate: Astro's scope
+     attribute does not reach the root element a child component renders, and
+     CSS nesting would lose the whole block on Safari below 16.5. */
+  .wall .wall-sign {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 26px 24px;
+    color: var(--sign-ink);
+  }
 
-    .wall-sign__back {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 34px;
-      font-weight: 900;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
+  .wall .wall-sign__back {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 34px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
 
-    .wall-sign__arrow {
-      width: 40px;
-      height: 40px;
-      flex: none;
-      transition: transform 200ms ease;
-    }
+  .wall .wall-sign__arrow {
+    width: 40px;
+    height: 40px;
+    flex: none;
+    transition: transform 200ms ease;
+  }
 
-    .wall-sign:hover .wall-sign__arrow {
-      transform: translateX(-10px);
-    }
+  .wall .wall-sign:hover .wall-sign__arrow {
+    transform: translateX(-10px);
+  }
 
-    .wall-sign__langs {
-      display: flex;
-      gap: 10px;
-      position: relative;
-      z-index: 3;
-    }
+  .wall .wall-sign__langs {
+    display: flex;
+    gap: 10px;
+    position: relative;
+    z-index: 3;
+  }
 
-    .wall-sign__pick {
-      padding: 2px 8px;
-      font-size: 32px;
-      font-weight: 900;
-      letter-spacing: 0.08em;
-      color: inherit;
-      text-decoration: none;
-      opacity: 0.55;
-    }
+  .wall .wall-sign__pick {
+    padding: 2px 8px;
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    color: inherit;
+    text-decoration: none;
+    opacity: 0.55;
+  }
 
-    .wall-sign__pick:hover {
-      opacity: 0.85;
-    }
+  .wall .wall-sign__pick:hover {
+    opacity: 0.85;
+  }
 
-    .wall-sign__pick.is-on {
-      opacity: 1;
-      background: var(--sign-ink);
-      color: var(--sign);
-    }
+  .wall .wall-sign__pick.is-on {
+    opacity: 1;
+    background: var(--sign-ink);
+    color: var(--sign);
+  }
 
-    /* The frames stay lit screens: white type on a dark face. The sign colour's
-       ink is black, which belongs on the yellow sign, not in here. */
-    .frame {
-      display: flex;
-      flex-direction: column;
-      padding: 1.3em;
-      font-size: 26px;
-      color: var(--ground-ink);
-      background: linear-gradient(180deg, #0c1622f2, #050a12f7);
-    }
+  /* The frames stay lit screens: white type on a dark face. The sign colour's
+  ink is black, which belongs on the yellow sign, not in here. */
+  .wall .frame {
+    display: flex;
+    flex-direction: column;
+    padding: 1.3em;
+    font-size: 26px;
+    color: var(--ground-ink);
+    background: linear-gradient(180deg, #0c1622f2, #050a12f7);
+  }
 
-    /* Too narrow for a paragraph: title, status and an arrow only. */
-    .frame--compact .frame__name {
-      font-size: 1.7em;
-    }
+  /* Too narrow for a paragraph: title, status and an arrow only. */
+  .wall .frame--compact .frame__name {
+    font-size: 1.7em;
+  }
 
-    .frame--compact .frame__cta {
-      justify-content: flex-end;
-    }
+  .wall .frame--compact .frame__cta {
+    justify-content: flex-end;
+  }
 
-    .frame--dark {
-      background: linear-gradient(180deg, #0a121cd9, #05090ee6);
-    }
+  .wall .frame--dark {
+    background: linear-gradient(180deg, #0a121cd9, #05090ee6);
+  }
 
-    .frame__thumb {
-      width: 100%;
-      aspect-ratio: 4 / 3;
-      margin-bottom: 1em;
-    }
+  .wall .frame__thumb {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    margin-bottom: 1em;
+  }
 
-    .frame__status {
-      display: flex;
-      align-items: center;
-      gap: 0.45em;
-      font-size: 1em;
-      font-weight: 700;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      opacity: 0.7;
-    }
+  .wall .frame__status {
+    display: flex;
+    align-items: center;
+    gap: 0.45em;
+    font-size: 1em;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
 
-    .frame__name {
-      margin-top: 0.5em;
-      font-size: 2em;
-      font-weight: 900;
-      line-height: 0.94;
-      letter-spacing: -0.02em;
-      text-transform: uppercase;
-    }
+  .wall .frame__name {
+    margin-top: 0.5em;
+    font-size: 2em;
+    font-weight: 900;
+    line-height: 0.94;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
 
-    .frame__role {
-      margin-top: 0.5em;
-      font-size: 1em;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      opacity: 0.62;
-    }
+  .wall .frame__role {
+    margin-top: 0.5em;
+    font-size: 1em;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.62;
+  }
 
-    .frame__cta {
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-      margin-top: auto;
-      padding-top: 1em;
-      font-size: 1em;
-      font-weight: 900;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-    }
+  .wall .frame__cta {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-top: auto;
+    padding-top: 1em;
+    font-size: 1em;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
 
-    .frame__arrow {
-      width: 1.3em;
-      height: 1.3em;
-      flex: none;
-      transition: transform 200ms ease;
-    }
+  .wall .frame__arrow {
+    width: 1.3em;
+    height: 1.3em;
+    flex: none;
+    transition: transform 200ms ease;
+  }
 
-    .frame:hover .frame__arrow {
-      transform: translateX(10px);
-    }
+  .wall .frame:hover .frame__arrow {
+    transform: translateX(10px);
+  }
 
-    .paging {
-      display: grid;
-      place-items: center;
-      color: var(--sign-ink);
-    }
+  .wall .paging {
+    display: grid;
+    place-items: center;
+    color: var(--sign-ink);
+  }
 
-    /* The sign is a real sign: it says where you are as well as the way out. */
-    .wall-sign__here {
-      margin: auto 0;
-      font-size: 56px;
-      font-weight: 900;
-      line-height: 0.9;
-      letter-spacing: -0.02em;
-      text-transform: uppercase;
-    }
+  /* The sign is a real sign: it says where you are as well as the way out. */
+  .wall .wall-sign__here {
+    margin: auto 0;
+    font-size: 56px;
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
 
-    .wall-sign__tag {
-      display: block;
-      margin-top: 10px;
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: 0.3em;
-      opacity: 0.65;
-    }
+  .wall .wall-sign__tag {
+    display: block;
+    margin-top: 10px;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    opacity: 0.65;
+  }
 
-    .paging__arrow {
-      width: 90px;
-      height: 90px;
-      transition: transform 200ms ease;
-    }
+  .wall .paging__arrow {
+    width: 90px;
+    height: 90px;
+    transition: transform 200ms ease;
+  }
 
-    .paging:hover .paging__arrow {
-      transform: translateX(12px);
-    }
+  .wall .paging:hover .paging__arrow {
+    transform: translateX(12px);
+  }
 
-    .dot {
-      width: 0.7em;
-      height: 0.7em;
-      flex: none;
-      border: 0.15em solid currentColor;
-    }
+  .wall .dot {
+    width: 0.7em;
+    height: 0.7em;
+    flex: none;
+    border: 0.15em solid currentColor;
+  }
 
-    .dot--live {
-      background: #6ee7a8;
-      border-color: #6ee7a8;
-    }
+  .wall .dot--live {
+    background: #6ee7a8;
+    border-color: #6ee7a8;
+  }
 
-    @media (prefers-reduced-motion: reduce) {
-      .wall-sign__arrow,
-      .frame__arrow,
-      .paging__arrow {
-        transition: none;
-      }
+  @media (prefers-reduced-motion: reduce) {
+    .wall .wall-sign__arrow,
+    .wall .frame__arrow,
+    .wall .paging__arrow {
+      transition: none;
     }
   }
 </style>
