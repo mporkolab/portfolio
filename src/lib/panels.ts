@@ -1,4 +1,4 @@
-import type { Quad } from './homography';
+import type { Quad } from './quad';
 
 /**
  * Panel geometry, measured in each plate's natural pixel space (2754x1536).
