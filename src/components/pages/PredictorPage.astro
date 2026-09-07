@@ -1,6 +1,7 @@
 ---
 import PageShell from '../PageShell.astro';
 import Thumb from '../Thumb.astro';
+import predictorLogo from '../../assets/fp-clear.png';
 import { t, path, type Lang } from '../../i18n/ui';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -13,7 +14,7 @@ const story = tr('p.predictor.story').split('\n');
     <p class="text-sm sm:text-base font-bold uppercase tracking-[0.2em] text-panel-ink/60">{tr('p.predictor.role')}</p>
     <p class="mt-5 text-xl sm:text-2xl font-bold leading-snug">{tr('p.predictor.blurb')}</p>
 
-    <Thumb label={tr('p.predictor.title')} class="mt-10 w-full aspect-[16/9]" />
+    <Thumb label={tr('p.predictor.title')} src={predictorLogo} logo sizes="(max-width: 640px) 100vw, 896px" class="mt-10 w-full aspect-[16/9]" />
 
     <div class="mt-10 border-t-2 border-panel-ink pt-8 flex flex-col gap-4">
       {story.map((para) => <p class="text-base sm:text-lg leading-relaxed text-panel-ink/80">{para}</p>)}

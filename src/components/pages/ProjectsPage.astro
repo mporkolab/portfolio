@@ -3,6 +3,7 @@ import PageShell from '../PageShell.astro';
 import Arrow from '../Arrow.astro';
 import Thumb from '../Thumb.astro';
 import edortechShot from '../../assets/edortech_landing.png';
+import predictorLogo from '../../assets/fp-clear.png';
 import { t, path, type Lang, here as currentPath } from '../../i18n/ui';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -19,6 +20,7 @@ const projects = [
     status: tr('board.status.live'),
     live: true,
     shot: edortechShot,
+    logo: false,
   },
   {
     href: path(lang, '/projects/football-predictor'),
@@ -27,7 +29,9 @@ const projects = [
     blurb: tr('p.predictor.blurb'),
     status: tr('board.status.dev'),
     live: false,
-    shot: undefined,
+    shot: predictorLogo,
+    // A logo, not a screenshot: shown whole rather than cropped to fill.
+    logo: true,
   },
 ];
 ---
@@ -56,7 +60,7 @@ const projects = [
     {projects.map((p) => (
       <li>
         <a href={p.href} class="panel-box group flex flex-col sm:flex-row gap-5 sm:gap-8 border-t-2 border-panel-ink py-6 sm:py-10 hover:bg-panel-ink/[0.04] transition-colors">
-          <Thumb label={p.title} src={p.shot} sizes="(max-width: 640px) 100vw, 256px" class="w-full sm:w-64 aspect-[16/9] shrink-0" />
+          <Thumb label={p.title} src={p.shot} logo={p.logo} sizes="(max-width: 640px) 100vw, 256px" class="w-full sm:w-64 aspect-[16/9] shrink-0" />
           <div class="min-w-0 flex-1">
             <p class="flex items-center gap-2 text-[0.6rem] sm:text-xs font-bold uppercase tracking-[0.25em] text-panel-ink/60">
               <span class={p.live ? 'inline-block w-2 h-2 bg-live' : 'inline-block w-2 h-2 border-2 border-panel-ink/60'}></span>

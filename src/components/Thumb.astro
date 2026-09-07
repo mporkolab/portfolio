@@ -9,6 +9,12 @@ interface Props {
   sizes?: string;
   /** `dark` inverts the placeholder for use on the unlit screens. */
   tone?: 'light' | 'dark';
+  /**
+   * A logo rather than a screenshot: shown whole on the housing's own dark
+   * plate, instead of cropped to fill the frame. A mark drawn to glow on dark
+   * loses both its contrast and its shape the other way round.
+   */
+  logo?: boolean;
   class?: string;
 }
 const {
@@ -16,6 +22,7 @@ const {
   src,
   sizes = '(max-width: 640px) 100vw, 900px',
   tone = 'light',
+  logo = false,
   class: className = '',
 } = Astro.props;
 // `dark` means a dark surface, so the placeholder draws in the light ink used
@@ -25,7 +32,7 @@ const ink = tone === 'dark' ? 'var(--ground-ink)' : 'var(--panel-ink)';
 <!-- Falls back to a placeholder where no screenshot exists; a placeholder is
      never presented as a shipped image. -->
 <div
-  class={`thumb relative overflow-hidden ${className}`}
+  class={`thumb relative overflow-hidden ${logo ? 'thumb--logo' : ''} ${className}`}
   style={`--thumb-ink:${ink}`}
   role={src ? undefined : 'img'}
   aria-label={src ? undefined : label}
@@ -38,7 +45,7 @@ const ink = tone === 'dark' ? 'var(--ground-ink)' : 'var(--panel-ink)';
       sizes={sizes}
       format="avif"
       quality={70}
-      class="absolute inset-0 h-full w-full object-cover object-top"
+      class={`absolute inset-0 h-full w-full ${logo ? 'object-contain p-4 sm:p-6' : 'object-cover object-top'}`}
     />
   ) : (
     <>
@@ -60,6 +67,12 @@ const ink = tone === 'dark' ? 'var(--ground-ink)' : 'var(--panel-ink)';
   .thumb {
     background: color-mix(in srgb, var(--thumb-ink) 6%, transparent);
     border: 2px solid color-mix(in srgb, var(--thumb-ink) 22%, transparent);
+  }
+
+  /* The unlit housing, so a mark drawn to glow reads as lit. */
+  .thumb--logo {
+    background: var(--frame);
+    border-color: color-mix(in srgb, var(--panel-ink) 30%, transparent);
   }
 
   .thumb__label {

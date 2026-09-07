@@ -59,14 +59,11 @@ export const ui = {
     'board.readCase': 'Read the case study',
 
     'p.edortech.title': 'edortech.hu',
-    'p.edortech.role': 'Client project · designed and built solo',
+    'p.edortech.role': 'Client project',
     'p.edortech.blurb':
-      'A bilingual site for Edortech, a European deep-tech company working on next-generation battery anode materials and cell-level testing. Concept, visual design, 3D, front end and deploy — all mine.',
+      'An innovative deep-tech company focused on high-energy systems and on developing the battery technologies of the future.',
     'p.edortech.stack': 'Astro · Three.js · Tailwind CSS',
     'p.edortech.visit': 'Visit the live site',
-    'p.edortech.clientLabel': 'The client',
-    'p.edortech.client':
-      'An innovative deep-tech company focused on high-energy systems and on developing the battery technologies of the future.',
     // Paragraphs are split on newlines where this is rendered.
     'p.edortech.story':
       'This site is close to my heart: it was my first big commission, so I tried to deliver the best work I was capable of.\n' +
@@ -147,14 +144,11 @@ export const ui = {
     'board.readCase': 'Esettanulmány megnyitása',
 
     'p.edortech.title': 'edortech.hu',
-    'p.edortech.role': 'Ügyfélprojekt · egyedül tervezve és fejlesztve',
+    'p.edortech.role': 'Ügyfélprojekt',
     'p.edortech.blurb':
-      'Kétnyelvű weboldal az Edortech számára, amely egy európai deep-tech cég: új generációs akkumulátor-anódanyagokkal és cellaszintű teszteléssel foglalkozik. Koncepció, vizuális terv, 3D, frontend és deploy — mind az enyém.',
+      'Innovatív deep-tech vállalat, amely nagyenergiájú rendszerekre és a jövő akkumulátortechnológiáinak fejlesztésére összpontosít.',
     'p.edortech.stack': 'Astro · Three.js · Tailwind CSS',
     'p.edortech.visit': 'Élő oldal megnyitása',
-    'p.edortech.clientLabel': 'Az ügyfél',
-    'p.edortech.client':
-      'Innovatív deep-tech vállalat, amely nagyenergiájú rendszerekre és a jövő akkumulátortechnológiáinak fejlesztésére összpontosít.',
     'p.edortech.story':
       'A weboldal közel áll a szívemhez, mivel ez volt az első nagy munkám, ezért a legjobb tudásom szerint próbáltam teljesíteni.\n' +
       'A cél egyszerű volt: egy modern, letisztult, gyors weboldal, ami többnyelvű.\n' +
