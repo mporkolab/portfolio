@@ -7,6 +7,9 @@ import { t, path, links, type Lang } from '../../i18n/ui';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const tr = t(lang);
+
+// The story reads as paragraphs, not one block.
+const story = tr('p.edortech.story').split('\n');
 ---
 <PageShell crumb={tr('nav.project')} up={{ href: path(lang, '/projects'), label: tr('nav.backProjects') }} lang={lang} title={tr('p.edortech.title')} eyebrow={`${tr('projects.title')} — ${tr('board.status.live')}`}>
   <div class="max-w-4xl">
@@ -14,6 +17,15 @@ const tr = t(lang);
     <p class="mt-5 text-xl sm:text-2xl font-bold leading-snug">{tr('p.edortech.blurb')}</p>
 
     <Thumb label={tr('p.edortech.title')} src={edortechShot} sizes="(max-width: 640px) 100vw, 896px" class="mt-10 w-full aspect-[16/9]" />
+
+    <dl class="mt-10 border-t-2 border-panel-ink pt-8">
+      <dt class="text-xs font-bold uppercase tracking-[0.3em] text-panel-ink/60">{tr('p.edortech.clientLabel')}</dt>
+      <dd class="mt-3 text-base sm:text-lg leading-relaxed text-panel-ink/80">{tr('p.edortech.client')}</dd>
+    </dl>
+
+    <div class="mt-10 border-t-2 border-panel-ink pt-8 flex flex-col gap-4">
+      {story.map((para) => <p class="text-base sm:text-lg leading-relaxed text-panel-ink/80">{para}</p>)}
+    </div>
 
     <dl class="mt-10 border-t-2 border-panel-ink pt-8">
       <dt class="text-xs font-bold uppercase tracking-[0.3em] text-panel-ink/60">Stack</dt>

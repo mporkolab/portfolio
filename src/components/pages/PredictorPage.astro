@@ -5,6 +5,8 @@ import { t, path, type Lang } from '../../i18n/ui';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const tr = t(lang);
+
+const story = tr('p.predictor.story').split('\n');
 ---
 <PageShell crumb={tr('nav.project')} up={{ href: path(lang, '/projects'), label: tr('nav.backProjects') }} lang={lang} title={tr('p.predictor.title')} eyebrow={`${tr('projects.title')} — ${tr('board.status.dev')}`}>
   <div class="max-w-4xl">
@@ -12,6 +14,10 @@ const tr = t(lang);
     <p class="mt-5 text-xl sm:text-2xl font-bold leading-snug">{tr('p.predictor.blurb')}</p>
 
     <Thumb label={tr('p.predictor.title')} class="mt-10 w-full aspect-[16/9]" />
+
+    <div class="mt-10 border-t-2 border-panel-ink pt-8 flex flex-col gap-4">
+      {story.map((para) => <p class="text-base sm:text-lg leading-relaxed text-panel-ink/80">{para}</p>)}
+    </div>
 
     <p class="mt-10 border-t-2 border-panel-ink pt-6 text-xs sm:text-sm font-bold uppercase tracking-[0.25em] text-panel-ink/50">
       {tr('p.predictor.note')}

@@ -64,6 +64,16 @@ export const ui = {
       'A bilingual site for Edortech, a European deep-tech company working on next-generation battery anode materials and cell-level testing. Concept, visual design, 3D, front end and deploy — all mine.',
     'p.edortech.stack': 'Astro · Three.js · Tailwind CSS',
     'p.edortech.visit': 'Visit the live site',
+    'p.edortech.clientLabel': 'The client',
+    'p.edortech.client':
+      'An innovative deep-tech company focused on high-energy systems and on developing the battery technologies of the future.',
+    // Paragraphs are split on newlines where this is rendered.
+    'p.edortech.story':
+      'This site is close to my heart: it was my first big commission, so I tried to deliver the best work I was capable of.\n' +
+      'The brief was simple: a modern, clean, fast site, in more than one language.\n' +
+      'It also had to account for SEO and GEO optimisation, so that search engines rank the site well and AI can quote from it when people put questions to it.\n' +
+      'Choosing the frameworks was easy. Performance came first, alongside the 3D model — which is what Three.js made possible.\n' +
+      "I built the design from the company's own core colours, mixed with a glass effect.",
 
     'p.predictor.title': 'Football predictor',
     'p.predictor.role': 'Personal project · in development',
@@ -71,6 +81,10 @@ export const ui = {
       'A machine-learning project that predicts the events and outcomes of football matches. Still being built — nothing is deployed or publicly usable yet.',
     'p.predictor.note':
       'No accuracy figures are published while the model is still in development.',
+    'p.predictor.story':
+      'The idea came out of my interest in machine learning, and in large part out of the 2026 World Cup.\n' +
+      'The first working version was already predicting: trained on 500 matches, on the national sides, from Elo ratings and earlier fixtures.\n' +
+      'Since then the front end has had a facelift, and as things stand the database has grown to sixteen thousand matches — the club leagues and the European cups are in there now too.',
 
     'about.title': 'Profile',
     'about.eyebrow': 'Gate A1 · Who',
@@ -138,6 +152,15 @@ export const ui = {
       'Kétnyelvű weboldal az Edortech számára, amely egy európai deep-tech cég: új generációs akkumulátor-anódanyagokkal és cellaszintű teszteléssel foglalkozik. Koncepció, vizuális terv, 3D, frontend és deploy — mind az enyém.',
     'p.edortech.stack': 'Astro · Three.js · Tailwind CSS',
     'p.edortech.visit': 'Élő oldal megnyitása',
+    'p.edortech.clientLabel': 'Az ügyfél',
+    'p.edortech.client':
+      'Innovatív deep-tech vállalat, amely nagyenergiájú rendszerekre és a jövő akkumulátortechnológiáinak fejlesztésére összpontosít.',
+    'p.edortech.story':
+      'A weboldal közel áll a szívemhez, mivel ez volt az első nagy munkám, ezért a legjobb tudásom szerint próbáltam teljesíteni.\n' +
+      'A cél egyszerű volt: egy modern, letisztult, gyors weboldal, ami többnyelvű.\n' +
+      'Figyelembe kellett venni a SEO- és GEO-optimalizációkat, hogy az oldalt a keresőmotorok előresorolják, és a mesterséges intelligencia is idézni tudjon belőle azokra a kérdésekre, amiket az interneten feltesznek.\n' +
+      'A kiválasztott keretrendszerek az Astro, a Three.js és a Tailwind voltak. Ezek kiválasztása egyszerű volt: a teljesítmény volt az elsődleges szempont, a 3D modell alkalmazása mellett — amit a Three.js tett lehetővé.\n' +
+      'A dizájntervet a cég alapszíneiből készítettem, üveghatással keverve.',
 
     'p.predictor.title': 'Football predictor',
     'p.predictor.role': 'Saját projekt · fejlesztés alatt',
@@ -145,6 +168,10 @@ export const ui = {
       'Gépi tanulásra épülő projekt, amely futballmérkőzések eseményeit és kimenetelét jelzi előre. Még épül — nincs kiélesítve, és nyilvánosan sem használható.',
     'p.predictor.note':
       'Amíg a modell fejlesztés alatt áll, nem közlünk pontossági számokat.',
+    'p.predictor.story':
+      'Ez a projekt alapvetően a gépi tanulás iránti érdeklődésem miatt pattant ki a fejemből, illetve nagy százalékban a 2026-os világbajnokság miatt.\n' +
+      'Az első működő verzió akkor már sikeresen tippelt is: 500 meccsen tanítva, a nemzeti válogatottakra, Elo és az előzetes mérkőzések alapján.\n' +
+      'Azóta kapott a frontend egy felvarrást, és jelen állás szerint 16 ezer meccsre bővült az adatbázis — megjelentek a klubbajnokságok és az európai kupasorozatok is.',
 
     'about.title': 'Rólam',
     'about.eyebrow': 'A1 kapu · Ki vagyok',

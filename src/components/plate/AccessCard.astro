@@ -110,11 +110,24 @@ const story = tr('about.body').split('\n');
 
 <style>
   .checkpoint {
+    --exit-offset: max(3vh, 20px);
+    --exit-band: calc(var(--exit-offset) + 3.5rem);
+
     position: relative;
     min-height: 100dvh;
     display: grid;
     place-items: center;
-    padding: 6vh 4vw;
+    /* The exit sits in the corner, out of the flow, so the padding is what keeps
+       the card from reaching it: the block padding reserves the exit's whole
+       band — its offset plus its own height plus a margin — and the card is
+       centred in what is left. Reserved at both ends so the card stays optically
+       centred rather than pushed down.
+
+       Without this the card simply grew upwards into the corner as the viewport
+       got shorter, and painted over the way out: a landscape tablet, where the
+       browser chrome eats a hundred-odd pixels of height, is exactly where that
+       first bites. */
+    padding: var(--exit-band) 4vw;
     isolation: isolate;
   }
 
@@ -403,7 +416,7 @@ const story = tr('about.body').split('\n');
 
   .exit {
     position: absolute;
-    top: max(3vh, 20px);
+    top: var(--exit-offset);
     left: max(3vw, 20px);
     display: flex;
     align-items: center;
@@ -429,7 +442,7 @@ const story = tr('about.body').split('\n');
      different layout. */
   @media (max-width: 860px) {
     .checkpoint {
-      padding: 4vh 3vw;
+      padding: var(--exit-band) 3vw;
     }
 
     .card__body {

@@ -36,6 +36,41 @@
   /* Status only — the one colour that must not be the sign colour. */
   --live: #12a150;
   --concourse-image: url('/bg-terminal.jpg');
+
+  /* The four smear strengths the camera turn steps through, as tokens rather
+     than literals, so a device that cannot afford them can switch them off in
+     one place. See the note on the keyframes below. */
+  --turn-blur-1: url(#turn-blur-1);
+  --turn-blur-2: url(#turn-blur-2);
+  --turn-blur-3: url(#turn-blur-3);
+  --turn-blur-4: url(#turn-blur-4);
+}
+
+/* An SVG filter is the one part of the turn that no engine composites on the
+   GPU: the full-viewport snapshot is re-rasterised on the CPU every frame, at
+   device pixel ratio, through a kernel up to 44px wide. A desktop absorbs that;
+   a tablet does not, and the turn arrives as a stutter — or as nothing at all,
+   once enough frames are dropped. The transforms are free by comparison, so a
+   touch device keeps the whole pan and gives up only the smear.
+
+   Two queries rather than one `or`: the same rule, stated in the two ways an
+   engine might answer for a tablet. */
+@media (pointer: coarse) {
+  :root {
+    --turn-blur-1: none;
+    --turn-blur-2: none;
+    --turn-blur-3: none;
+    --turn-blur-4: none;
+  }
+}
+
+@media (hover: none) {
+  :root {
+    --turn-blur-1: none;
+    --turn-blur-2: none;
+    --turn-blur-3: none;
+    --turn-blur-4: none;
+  }
 }
 
 /* Which board a device gets.
@@ -141,42 +176,42 @@
     filter: none;
   }
   8% {
-    filter: url(#turn-blur-1);
+    filter: var(--turn-blur-1);
   }
   22% {
-    filter: url(#turn-blur-3);
+    filter: var(--turn-blur-3);
   }
   45% {
-    filter: url(#turn-blur-4);
+    filter: var(--turn-blur-4);
   }
   70% {
-    filter: url(#turn-blur-3);
+    filter: var(--turn-blur-3);
   }
   88% {
-    filter: url(#turn-blur-2);
+    filter: var(--turn-blur-2);
   }
   to {
     transform: perspective(1600px) translateX(-46%) rotateY(26deg) scale(0.97);
-    filter: url(#turn-blur-2);
+    filter: var(--turn-blur-2);
   }
 }
 
 @keyframes pan-in-right {
   from {
     transform: perspective(1600px) translateX(46%) rotateY(-26deg) scale(0.97);
-    filter: url(#turn-blur-4);
+    filter: var(--turn-blur-4);
   }
   45% {
-    filter: url(#turn-blur-4);
+    filter: var(--turn-blur-4);
   }
   70% {
-    filter: url(#turn-blur-3);
+    filter: var(--turn-blur-3);
   }
   85% {
-    filter: url(#turn-blur-2);
+    filter: var(--turn-blur-2);
   }
   95% {
-    filter: url(#turn-blur-1);
+    filter: var(--turn-blur-1);
   }
   to {
     transform: perspective(1600px) translateX(0) rotateY(0deg) scale(1);
@@ -190,42 +225,42 @@
     filter: none;
   }
   8% {
-    filter: url(#turn-blur-1);
+    filter: var(--turn-blur-1);
   }
   22% {
-    filter: url(#turn-blur-3);
+    filter: var(--turn-blur-3);
   }
   45% {
-    filter: url(#turn-blur-4);
+    filter: var(--turn-blur-4);
   }
   70% {
-    filter: url(#turn-blur-3);
+    filter: var(--turn-blur-3);
   }
   88% {
-    filter: url(#turn-blur-2);
+    filter: var(--turn-blur-2);
   }
   to {
     transform: perspective(1600px) translateX(46%) rotateY(-26deg) scale(0.97);
-    filter: url(#turn-blur-2);
+    filter: var(--turn-blur-2);
   }
 }
 
 @keyframes pan-in-left {
   from {
     transform: perspective(1600px) translateX(-46%) rotateY(26deg) scale(0.97);
-    filter: url(#turn-blur-4);
+    filter: var(--turn-blur-4);
   }
   45% {
-    filter: url(#turn-blur-4);
+    filter: var(--turn-blur-4);
   }
   70% {
-    filter: url(#turn-blur-3);
+    filter: var(--turn-blur-3);
   }
   85% {
-    filter: url(#turn-blur-2);
+    filter: var(--turn-blur-2);
   }
   95% {
-    filter: url(#turn-blur-1);
+    filter: var(--turn-blur-1);
   }
   to {
     transform: perspective(1600px) translateX(0) rotateY(0deg) scale(1);
