@@ -84,7 +84,11 @@ const vars = [
   <div class:list={['plate', content && 'plate--boxed', className]}>
     <!-- Panels live in the plate's natural pixel space, scaled as one block. -->
     <div class="plate__space" data-calibrate={calibrate ? '' : undefined}>
-      <div class="plate__units" style={`transform:scale(tan(atan2(100cqw, ${space.w}px)))`}>
+      <div
+        class="plate__units"
+        data-space-w={space.w}
+        style={`transform:scale(var(--unit-scale, tan(atan2(100cqw, ${space.w}px))))`}
+      >
         <slot />
       </div>
     </div>
@@ -191,9 +195,17 @@ const vars = [
   }
 
   /* One transform carries the whole natural-pixel space onto the photo, so the
-     per-panel matrices stay constants that never need recomputing. The scale has
-     to come through atan2/tan: dividing a container-query length by a number
-     yields a length, and scale() needs a bare number. */
+     per-panel matrices stay constants that never need recomputing.
+
+     The CSS form of that scale has to come through atan2/tan, because dividing a
+     container-query length by a number yields a length and scale() needs a bare
+     number. That expression is the newest CSS in the project and the single point
+     of failure for the whole plate: every panel hangs off it, so if an engine drops
+     it or resolves the container unit to zero, the photograph still paints and all
+     of the wayfinding vanishes — which is what a landscape iPad was showing, and
+     what Chrome at the same viewport was not. So the scale is measured in script
+     instead: --unit-scale wins over the CSS expression, which stays as the
+     pre-script paint and the no-JS path on engines that do get it right. */
   .plate__units {
     position: absolute;
     top: 0;
@@ -203,6 +215,42 @@ const vars = [
     transform-origin: 0 0;
   }
 </style>
+
+<!-- Runs during parse, before the plate is painted, so the measured scale is in
+     place from the first frame rather than after a visible jump. -->
+<script is:inline>
+  (() => {
+    // The observers are held here on purpose: an unreferenced ResizeObserver is
+    // collectable, and a collected one silently stops updating on resize.
+    const watched = new WeakMap();
+
+    const apply = (units) => {
+      const space = units.parentElement;
+      const design = Number(units.dataset.spaceW);
+      if (!space || !design || watched.has(units)) return;
+      const set = () => {
+        const width = space.getBoundingClientRect().width;
+        if (width > 0) units.style.setProperty('--unit-scale', String(width / design));
+      };
+      set();
+      if (typeof ResizeObserver === 'function') {
+        const observer = new ResizeObserver(set);
+        observer.observe(space);
+        watched.set(units, observer);
+      } else {
+        addEventListener('resize', set);
+        watched.set(units, set);
+      }
+    };
+
+    const run = () => document.querySelectorAll('.plate__units[data-space-w]').forEach(apply);
+    run();
+    // The element may not be parsed yet on the first pass, and Astro's view
+    // transitions swap in a fresh plate on every navigation.
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+    document.addEventListener('astro:page-load', run);
+  })();
+</script>
 
 <script>
   // Calibration: click the corners of a panel to read them back in natural pixels.
