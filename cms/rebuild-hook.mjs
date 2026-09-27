@@ -1,17 +1,10 @@
 /**
  * The endpoint Directus calls when a project is saved: it runs cms/rebuild.sh.
  *
- * It listens only where the Directus container reaches the host, and nowhere
- * public. That address differs by platform: Docker Desktop forwards
- * host.docker.internal to the host's loopback, so 127.0.0.1 (the default) is
- * enough; on Linux, host.docker.internal is the docker0 bridge, so
- * REBUILD_HOST=172.17.0.1. It also wants a shared secret, so that anything
- * else that can reach that address cannot trigger builds.
- *
- *   REBUILD_TOKEN=<secret> node cms/rebuild-hook.mjs
- *
- * On the server it runs as a systemd service (cms/rebuild-hook.service), so it
- * comes back with the box.
+ * It runs as the `rebuild-hook` service of the compose project, so it starts
+ * and restarts with everything else. No port is published: only the Directus
+ * container reaches it, over the compose network. It also wants a shared
+ * secret, so that nothing else on that network can trigger builds.
  */
 
 import { createServer } from 'node:http';

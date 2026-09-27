@@ -27,10 +27,6 @@ services:
     volumes:
       - ./data/uploads:/directus/uploads
       - ./data/extensions:/directus/extensions
-    # A mentéskor induló Flow ezen a néven hívja a hoszton futó rebuild hookot.
-    # Docker Desktopon magától is létezik, Linuxon ez a sor adja.
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
     depends_on:
       directus-db:
         condition: service_healthy
@@ -48,3 +44,29 @@ services:
       PUBLIC_URL: ${CMS_PUBLIC_URL:-http://localhost:8055}
       # A build a nyilvános (autentikáció nélküli) olvasásra támaszkodik.
       CORS_ENABLED: 'true'
+
+  # Mentéskor a Directus Flow-ja ezt hívja (http://rebuild-hook:9009/rebuild), ez
+  # pedig lefuttatja a cms/rebuild.sh-t. Port nincs kiadva: csak a compose
+  # hálózaton, a Directus felől érhető el. A hoszt Docker-démonján épít — a
+  # sockettel ugyanazt teheti, amit a gépen egy docker parancs.
+  rebuild-hook:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM docker:cli
+        RUN apk add --no-cache bash curl nodejs
+    container_name: portfolio-rebuild-hook
+    restart: unless-stopped
+    working_dir: /repo
+    entrypoint: ['node', 'cms/rebuild-hook.mjs']
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ..:/repo:ro
+    environment:
+      REBUILD_TOKEN: ${REBUILD_TOKEN:?add REBUILD_TOKEN to cms/.env}
+      REBUILD_HOST: 0.0.0.0
+      # A rebuild.sh a CMS-t innen, a compose hálózaton ellenőrzi.
+      REBUILD_CMS_URL: http://directus:8055
+      REBUILD_IN_CONTAINER: '1'
+    depends_on:
+      - directus

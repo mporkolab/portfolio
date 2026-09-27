@@ -17,7 +17,7 @@ admin felületen — nincs hozzá commit.
 
 ```bash
 cp cms/.env.example cms/.env   # töltsd ki: openssl rand -hex 32 a KEY-hez és a SECRET-hez
-docker compose up -d directus-db directus   # a repo gyökeréből
+docker compose up -d directus-db directus rebuild-hook   # a repo gyökeréből
 node cms/setup.mjs             # séma + publikus olvasás + a két meglévő projekt
 cms/rebuild.sh                 # az oldal megépítése a CMS-ből és elindítása
 ```
@@ -53,37 +53,23 @@ csendben kiadott, projektek nélküli oldal rosszabb lenne, mint egy megszakadt
 
 ## Mentésre induló újraépítés
 
-A lánc: mentés az adminban → Flow → hook → `rebuild.sh` → új image → a konténer
-lecserélve. A `rebuild.sh` előbb épít, és csak sikeres build után cserél. Több
-mentés egymás után egy újraépítést jelent (15 s-os késleltetés).
+A lánc: mentés az adminban → Flow → `rebuild-hook` konténer → `rebuild.sh` → új
+image → a `portfolio` konténer lecserélve. A `rebuild.sh` előbb épít, és csak
+sikeres build után cserél. Több mentés egymás után egy újraépítést jelent (15 s
+késleltetés).
 
-A hook (`rebuild-hook.mjs`) a hoszton fut, és csak ott figyel, ahol a Directus
-konténer a hosztot éri el — nyilvánosan sehol. Kér egy fejlécben utazó titkot is.
+A hook a compose projekt része, a CMS-sel együtt indul, nincs mit külön
+telepíteni. Portot nem ad ki: csak a Directus éri el, a compose hálózaton
+(`http://rebuild-hook:9009/rebuild`), egy fejlécben utazó titokkal. A hoszt
+Docker-socketjén keresztül épít.
 
-**A szerveren (Linux), egyszer:**
+Beállítás: a `cms/.env`-ben a `REBUILD_HOOK_URL` és a `REBUILD_TOKEN`, utána
+`node cms/setup.mjs` felveszi a Flow-t, vagy a meglévőt ezekhez igazítja.
 
-1. A `cms/.env`-be:
-   ```
-   REBUILD_HOOK_URL=http://host.docker.internal:9009/rebuild
-   REBUILD_TOKEN=<openssl rand -hex 32>
-   REBUILD_HOST=172.17.0.1
-   ```
-   A `172.17.0.1` a docker0 híd címe; ha nálad más, `ip -4 addr show docker0`.
-2. `docker compose up -d directus` — hogy a Directus megkapja a
-   `host.docker.internal` nevet.
-3. `node cms/setup.mjs` — felveszi a Flow-t. Ha a Flow már létezik (mert a
-   token korábban is ki volt töltve), a setup nem írja át: az URL-t és a tokent
-   az adminban, a Settings → Flows alatt ellenőrizd.
-4. A service: `cms/rebuild-hook.service` — a telepítés a fájl tetején van. Ha a
-   repo nem a `/mnt/storage/portfolio` alatt van, az útvonalakat igazítsd benne.
-5. Próba: ments el egy projektet az adminban, és nézd:
-   `journalctl -u portfolio-rebuild-hook -f`.
+Napló: `docker logs -f portfolio-rebuild-hook`.
 
-Ha a hívás nem ér el a hookig, és fut `ufw`, engedd a Docker hálózatokból:
-`sudo ufw allow from 172.16.0.0/12 to any port 9009 proto tcp`.
-
-**Macen, Docker Desktoppal** a `REBUILD_HOST` üresen marad (127.0.0.1), és a
-hook kézzel indítható: `set -a; . cms/.env; set +a; node cms/rebuild-hook.mjs`.
+Csak a `projects` mentése indít újraépítést; egy képet a fájlkönyvtárban
+kicserélve kézzel kell: `cms/rebuild.sh`.
 
 ## Élesbe (homelab)
 

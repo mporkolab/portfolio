@@ -300,11 +300,12 @@ async function seed() {
  * The Flow that tells the host to rebuild when a project is saved. Only set up
  * when cms/.env says where the trigger lives, because that address is per-host:
  *
- *   REBUILD_HOOK_URL=http://host.docker.internal:9009/rebuild
+ *   REBUILD_HOOK_URL=http://rebuild-hook:9009/rebuild
  *   REBUILD_TOKEN=<the same secret the hook runs with>
  *
- * An existing Flow is left alone, so a changed URL or token has to be edited in
- * the admin (Settings → Flows), or the Flow deleted and this run again.
+ * An existing Flow keeps whatever was edited on it in the admin, except the
+ * address and the secret, which are brought in line with cms/.env — those are
+ * the two that change when the hook moves.
  */
 async function ensureRebuildFlow() {
   if (!env.REBUILD_HOOK_URL || !env.REBUILD_TOKEN) {
@@ -312,9 +313,19 @@ async function ensureRebuildFlow() {
     return;
   }
   const NAME = 'Rebuild the site';
-  const flows = await api('/flows?fields=id,name');
-  if (flows.some((f) => f.name === NAME)) {
-    console.log(`• Flow "${NAME}" already exists`);
+  const options = {
+    method: 'POST',
+    url: env.REBUILD_HOOK_URL,
+    headers: [{ header: 'x-rebuild-token', value: env.REBUILD_TOKEN }],
+    body: '{}',
+  };
+  const flows = await api('/flows?fields=id,name,operation');
+  const existing = flows.find((f) => f.name === NAME);
+  if (existing) {
+    if (existing.operation) {
+      await api(`/operations/${existing.operation}`, { method: 'PATCH', body: { options } });
+    }
+    console.log(`• Flow "${NAME}" already exists → ${env.REBUILD_HOOK_URL}`);
     return;
   }
 
@@ -343,12 +354,7 @@ async function ensureRebuildFlow() {
       type: 'request',
       position_x: 19,
       position_y: 1,
-      options: {
-        method: 'POST',
-        url: env.REBUILD_HOOK_URL,
-        headers: [{ header: 'x-rebuild-token', value: env.REBUILD_TOKEN }],
-        body: '{}',
-      },
+      options,
     },
   });
   await api(`/flows/${flow.id}`, { method: 'PATCH', body: { operation: operation.id } });

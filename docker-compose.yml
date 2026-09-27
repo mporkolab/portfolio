@@ -1,5 +1,9 @@
 # A CMS ugyanennek a projektnek a része, nem külön "cms" projekt: a saját
 # fájlja a cms/.env-ből olvas, a kötetei a cms/data alatt vannak.
+# Rögzített projektnév: a rebuild hook a konténeréből (/repo) is ezt a projektet
+# kezelje, ne egy "repo" nevűt.
+name: portfolio
+
 include:
   - cms/docker-compose.yml
 
