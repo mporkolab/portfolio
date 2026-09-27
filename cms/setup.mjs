@@ -303,8 +303,8 @@ async function seed() {
  *   REBUILD_HOOK_URL=http://host.docker.internal:9009/rebuild
  *   REBUILD_TOKEN=<the same secret the hook runs with>
  *
- * From a Linux host add `extra_hosts: ["host.docker.internal:host-gateway"]` to
- * the directus service so the container can resolve that name.
+ * An existing Flow is left alone, so a changed URL or token has to be edited in
+ * the admin (Settings → Flows), or the Flow deleted and this run again.
  */
 async function ensureRebuildFlow() {
   if (!env.REBUILD_HOOK_URL || !env.REBUILD_TOKEN) {

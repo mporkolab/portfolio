@@ -1,14 +1,17 @@
 /**
  * The endpoint Directus calls when a project is saved: it runs cms/rebuild.sh.
  *
- * Binds to 127.0.0.1 only, so it is reachable from the Directus container over
- * the host gateway and from nothing else — it is not something to put behind
- * the tunnel. It also wants a shared secret, so that anything else that ends up
- * talking to localhost cannot trigger builds.
+ * It listens only where the Directus container reaches the host, and nowhere
+ * public. That address differs by platform: Docker Desktop forwards
+ * host.docker.internal to the host's loopback, so 127.0.0.1 (the default) is
+ * enough; on Linux, host.docker.internal is the docker0 bridge, so
+ * REBUILD_HOST=172.17.0.1. It also wants a shared secret, so that anything
+ * else that can reach that address cannot trigger builds.
  *
  *   REBUILD_TOKEN=<secret> node cms/rebuild-hook.mjs
  *
- * Run it as a systemd service (or a launchd job) so it comes back with the box.
+ * On the server it runs as a systemd service (cms/rebuild-hook.service), so it
+ * comes back with the box.
  */
 
 import { createServer } from 'node:http';
@@ -18,6 +21,7 @@ import { dirname, join } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const TOKEN = process.env.REBUILD_TOKEN;
+const HOST = process.env.REBUILD_HOST || '127.0.0.1';
 const PORT = Number(process.env.REBUILD_PORT ?? 9009);
 /** Ten saves in a row should mean one rebuild, not ten. */
 const DEBOUNCE_MS = Number(process.env.REBUILD_DEBOUNCE_MS ?? 15_000);
@@ -72,6 +76,6 @@ createServer((req, res) => {
   res.writeHead(202).end('queued\n');
   req.resume();
   schedule();
-}).listen(PORT, '127.0.0.1', () => {
-  console.log(`rebuild hook listening on http://127.0.0.1:${PORT}/rebuild`);
+}).listen(PORT, HOST, () => {
+  console.log(`rebuild hook listening on http://${HOST}:${PORT}/rebuild`);
 });

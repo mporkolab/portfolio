@@ -27,6 +27,10 @@ services:
     volumes:
       - ./data/uploads:/directus/uploads
       - ./data/extensions:/directus/extensions
+    # A mentéskor induló Flow ezen a néven hívja a hoszton futó rebuild hookot.
+    # Docker Desktopon magától is létezik, Linuxon ez a sor adja.
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     depends_on:
       directus-db:
         condition: service_healthy

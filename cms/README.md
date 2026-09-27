@@ -53,29 +53,49 @@ csendben kiadott, projektek nélküli oldal rosszabb lenne, mint egy megszakadt
 
 ## Mentésre induló újraépítés
 
-A hoszton fusson a hook (systemd service-ként vagy launchd jobként, hogy a gép
-újraindulását túlélje):
-
-```bash
-REBUILD_TOKEN=<titok> node cms/rebuild-hook.mjs
-```
-
-Csak a `127.0.0.1`-en hallgat, és kér egy fejlécben utazó titkot — nem olyan,
-amit a tunnel mögé ki kell tenni. Több mentés egymás után egy újraépítést jelent
-(15 s-os késleltetés).
-
-Utána a `cms/.env`-be kerül a `REBUILD_HOOK_URL` és ugyanaz a `REBUILD_TOKEN`, és
-a `node setup.mjs` felveszi a Directus Flow-t, ami meghívja.
-
 A lánc: mentés az adminban → Flow → hook → `rebuild.sh` → új image → a konténer
-lecserélve. A `rebuild.sh` előbb épít, és csak sikeres build után cserél.
+lecserélve. A `rebuild.sh` előbb épít, és csak sikeres build után cserél. Több
+mentés egymás után egy újraépítést jelent (15 s-os késleltetés).
+
+A hook (`rebuild-hook.mjs`) a hoszton fut, és csak ott figyel, ahol a Directus
+konténer a hosztot éri el — nyilvánosan sehol. Kér egy fejlécben utazó titkot is.
+
+**A szerveren (Linux), egyszer:**
+
+1. A `cms/.env`-be:
+   ```
+   REBUILD_HOOK_URL=http://host.docker.internal:9009/rebuild
+   REBUILD_TOKEN=<openssl rand -hex 32>
+   REBUILD_HOST=172.17.0.1
+   ```
+   A `172.17.0.1` a docker0 híd címe; ha nálad más, `ip -4 addr show docker0`.
+2. `docker compose up -d directus` — hogy a Directus megkapja a
+   `host.docker.internal` nevet.
+3. `node cms/setup.mjs` — felveszi a Flow-t. Ha a Flow már létezik (mert a
+   token korábban is ki volt töltve), a setup nem írja át: az URL-t és a tokent
+   az adminban, a Settings → Flows alatt ellenőrizd.
+4. A service: `cms/rebuild-hook.service` — a telepítés a fájl tetején van. Ha a
+   repo nem a `/mnt/storage/portfolio` alatt van, az útvonalakat igazítsd benne.
+5. Próba: ments el egy projektet az adminban, és nézd:
+   `journalctl -u portfolio-rebuild-hook -f`.
+
+Ha a hívás nem ér el a hookig, és fut `ufw`, engedd a Docker hálózatokból:
+`sudo ufw allow from 172.16.0.0/12 to any port 9009 proto tcp`.
+
+**Macen, Docker Desktoppal** a `REBUILD_HOST` üresen marad (127.0.0.1), és a
+hook kézzel indítható: `set -a; . cms/.env; set +a; node cms/rebuild-hook.mjs`.
 
 ## Élesbe (homelab)
 
-1. A repo a szerveren, `cms/.env` kitöltve, a gyökérből `cms/rebuild.sh`.
+1. Linux hoszton a Docker `root`-ként hozza létre a `cms/data` mappáit, a
+   Directus viszont uid 1000 alatt fut, és nem tud írni beléjük — a
+   `/server/health` ilyenkor 503-at ad. Az első `docker compose up` után egyszer:
+   `sudo chown -R 1000:1000 cms/data/uploads cms/data/extensions`, majd
+   `docker compose restart directus`. (A `db` a Postgresé, 70-es uid, azt hagyd.)
+2. A repo a szerveren, `cms/.env` kitöltve, a gyökérből `cms/rebuild.sh`.
    Ez előbb a CMS-t indítja el, és csak utána építi az oldalt. A sima
    `docker compose up -d` itt nem jó: az minden image-et megépít, mielőtt bármit
    elindítana, így az oldal buildje egy még le nem futó CMS-ből olvasna.
-2. A repo `.env`-jében a két Directus-cím ugyanaz, mint helyben.
-3. Az admin felület (`:8055`) csak VPN-ről (Tailscale) legyen elérhető: ne kerüljön
+3. A repo `.env`-jében a két Directus-cím ugyanaz, mint helyben.
+4. Az admin felület (`:8055`) csak VPN-ről (Tailscale) legyen elérhető: ne kerüljön
    a reverse proxy mögé, és ne kapjon nyilvános domaint.
