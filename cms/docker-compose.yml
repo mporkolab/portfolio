@@ -1,0 +1,46 @@
+# Directus a portfólió tartalmához. A projektek innen jönnek, nem a kódból.
+# A gyökér docker-compose.yml include-olja, onnan indítsd: docker compose up -d
+# A titkok a cms/.env fájlból jönnek (nincs verziókövetve) — cms/.env.example a minta.
+services:
+  directus-db:
+    image: postgres:16-alpine
+    container_name: portfolio-cms-db
+    restart: unless-stopped
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: directus
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?add DB_PASSWORD to cms/.env}
+      POSTGRES_DB: directus
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U directus -d directus']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  directus:
+    image: directus/directus:11
+    container_name: portfolio-cms
+    restart: unless-stopped
+    ports:
+      - '${CMS_PORT:-8055}:8055'
+    volumes:
+      - ./data/uploads:/directus/uploads
+      - ./data/extensions:/directus/extensions
+    depends_on:
+      directus-db:
+        condition: service_healthy
+    environment:
+      KEY: ${CMS_KEY:?add CMS_KEY to cms/.env}
+      SECRET: ${CMS_SECRET:?add CMS_SECRET to cms/.env}
+      DB_CLIENT: pg
+      DB_HOST: directus-db
+      DB_PORT: '5432'
+      DB_DATABASE: directus
+      DB_USER: directus
+      DB_PASSWORD: ${DB_PASSWORD}
+      ADMIN_EMAIL: ${CMS_ADMIN_EMAIL:?add CMS_ADMIN_EMAIL to cms/.env}
+      ADMIN_PASSWORD: ${CMS_ADMIN_PASSWORD:?add CMS_ADMIN_PASSWORD to cms/.env}
+      PUBLIC_URL: ${CMS_PUBLIC_URL:-http://localhost:8055}
+      # A build a nyilvános (autentikáció nélküli) olvasásra támaszkodik.
+      CORS_ENABLED: 'true'

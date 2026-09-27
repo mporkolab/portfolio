@@ -2,8 +2,7 @@
 import PageShell from '../PageShell.astro';
 import Arrow from '../Arrow.astro';
 import Thumb from '../Thumb.astro';
-import edortechShot from '../../assets/edortech_landing.png';
-import predictorLogo from '../../assets/fp-clear.png';
+import { getProjects, copyFor, assetUrl } from '../../lib/projects';
 import { t, path, type Lang, here as currentPath } from '../../i18n/ui';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -11,29 +10,16 @@ const tr = t(lang);
 
 const here = currentPath(Astro.url.pathname);
 
-const projects = [
-  {
-    href: path(lang, '/projects/edortech'),
-    title: tr('p.edortech.title'),
-    role: tr('p.edortech.role'),
-    blurb: tr('p.edortech.blurb'),
-    status: tr('board.status.live'),
-    live: true,
-    shot: edortechShot,
-    logo: false,
-  },
-  {
-    href: path(lang, '/projects/football-predictor'),
-    title: tr('p.predictor.title'),
-    role: tr('p.predictor.role'),
-    blurb: tr('p.predictor.blurb'),
-    status: tr('board.status.dev'),
-    live: false,
-    shot: predictorLogo,
-    // A logo, not a screenshot: shown whole rather than cropped to fill.
-    logo: true,
-  },
-];
+// The list is the CMS order, all of it: unlike the wall, a narrow screen has no
+// fixed number of frames to fill.
+const projects = (await getProjects()).map((p) => ({
+  href: path(lang, `/projects/${p.slug}`),
+  ...copyFor(p, lang),
+  status: p.status === 'live' ? tr('board.status.live') : tr('board.status.dev'),
+  live: p.status === 'live',
+  shot: p.thumbnail ? assetUrl(p.thumbnail, 640) : undefined,
+  logo: p.thumbnail_is_logo,
+}));
 ---
 <PageShell lang={lang} title={tr('projects.title')} eyebrow="Gate A2">
   <!-- The controls a visitor actually wants at the top of a list page: the way

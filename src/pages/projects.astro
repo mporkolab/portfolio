@@ -8,7 +8,7 @@ import { projectPages } from '../lib/projects';
 import { cameraTurn } from '../lib/transitions';
 
 const lang = 'en' as const;
-const pages = projectPages();
+const pages = await projectPages();
 ---
 <Layout title="Porkoláb Martin | Projects" lang={lang}>
   <div class="wide-only" transition:name="scene" transition:animate={cameraTurn}>

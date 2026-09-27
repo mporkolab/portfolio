@@ -3,8 +3,12 @@ import { Image } from 'astro:assets';
 
 interface Props {
   label: string;
-  /** A real screenshot. Without one the frame falls back to the placeholder. */
-  src?: ImageMetadata;
+  /**
+   * A real screenshot. Without one the frame falls back to the placeholder.
+   * A string is a CMS-hosted image, already sized by the asset URL; an
+   * ImageMetadata is a file in this repo, which Astro optimises itself.
+   */
+  src?: ImageMetadata | string;
   /** Widths the frame is drawn at, for the srcset. */
   sizes?: string;
   /** `dark` inverts the placeholder for use on the unlit screens. */
@@ -37,7 +41,15 @@ const ink = tone === 'dark' ? 'var(--ground-ink)' : 'var(--panel-ink)';
   role={src ? undefined : 'img'}
   aria-label={src ? undefined : label}
 >
-  {src ? (
+  {typeof src === 'string' ? (
+    <img
+      src={src}
+      alt={label}
+      loading="lazy"
+      decoding="async"
+      class={`absolute inset-0 h-full w-full ${logo ? 'object-contain p-4 sm:p-6' : 'object-cover object-top'}`}
+    />
+  ) : src ? (
     <Image
       src={src}
       alt={label}

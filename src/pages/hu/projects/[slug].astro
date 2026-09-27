@@ -1,0 +1,22 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Layout from '../../../layouts/Layout.astro';
+import CaseStudyPage from '../../../components/pages/CaseStudyPage.astro';
+import { getProjects } from '../../../lib/projects';
+
+// One case study per project in the CMS. A project added there gets its page
+// on the next build; nothing here names a project.
+export const getStaticPaths: GetStaticPaths = async () => {
+  const projects = await getProjects();
+  return projects.map((project) => ({
+    params: { slug: project.slug },
+    props: { project },
+  }));
+};
+
+const lang = 'hu' as const;
+const { project } = Astro.props;
+---
+<Layout title={`${project.title} | Porkoláb Martin`} lang={lang}>
+  <CaseStudyPage lang={lang} project={project} />
+</Layout>

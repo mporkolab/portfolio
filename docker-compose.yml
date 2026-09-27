@@ -1,13 +1,27 @@
+# A CMS ugyanennek a projektnek a része, nem külön "cms" projekt: a saját
+# fájlja a cms/.env-ből olvas, a kötetei a cms/data alatt vannak.
+include:
+  - cms/docker-compose.yml
+
 services:
   portfolio:
     build:
       context: .
+      # A build konténere így éri el a hoszton futó CMS-t. Linux hoszton ez a
+      # sor nem elhagyható; Docker Desktopon is ez a biztos út.
+      extra_hosts:
+        - "host.docker.internal:host-gateway"
       args:
         # A prefixes második kiadás útvonala (/ nélkül). A gyökér mindig épül.
         BASE_PATH: "${BASE_PATH:-portfolio}"
         PUBLIC_CONTACT_EMAIL: "${PUBLIC_CONTACT_EMAIL:-}"
         PUBLIC_CONTACT_ENDPOINT: "${PUBLIC_CONTACT_ENDPOINT:-}"
         PUBLIC_CONTACT_ACCESS_KEY: "${PUBLIC_CONTACT_ACCESS_KEY:-}"
+        # Ahonnan a build olvas. A build a konténerben fut, ezért ez nem a
+        # hoszt localhostja: DIRECTUS_BUILD_URL írja felül a .env DIRECTUS_URL-t.
+        DIRECTUS_URL: "${DIRECTUS_BUILD_URL:-${DIRECTUS_URL:-http://localhost:8055}}"
+        # Ami a képcímekbe kerül, és amit a látogató böngészője lekér.
+        PUBLIC_DIRECTUS_URL: "${PUBLIC_DIRECTUS_URL:-}"
     image: portfolio:latest
     # Rögzített név, hogy a reverse proxy stabil hosztnéven érje el.
     container_name: portfolio

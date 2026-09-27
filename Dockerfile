@@ -14,9 +14,23 @@ ARG BASE_PATH="portfolio"
 ARG PUBLIC_CONTACT_EMAIL=""
 ARG PUBLIC_CONTACT_ENDPOINT=""
 ARG PUBLIC_CONTACT_ACCESS_KEY=""
+
+# A projektek a Directusból jönnek, build időben. Ezt a címet EBBŐL a
+# konténerből kell elérni (a hoszton futó CMS-hez host.docker.internal, vagy
+# egy közös docker hálózaton a szolgáltatás neve). Ha nem elérhető, a build
+# szándékosan elhasal, hogy ne kerüljön ki projektek nélküli oldal.
+ARG DIRECTUS_URL="http://localhost:8055"
+
+# A kész HTML-be írt képcímek alapja. Ezt már a LÁTOGATÓ böngészője kéri le,
+# ezért a CMS nyilvános címe kell ide (pl. https://cms.martinporkolab.hu).
+# Üresen hagyva a DIRECTUS_URL-t használja.
+ARG PUBLIC_DIRECTUS_URL=""
+
 ENV PUBLIC_CONTACT_EMAIL=$PUBLIC_CONTACT_EMAIL \
     PUBLIC_CONTACT_ENDPOINT=$PUBLIC_CONTACT_ENDPOINT \
-    PUBLIC_CONTACT_ACCESS_KEY=$PUBLIC_CONTACT_ACCESS_KEY
+    PUBLIC_CONTACT_ACCESS_KEY=$PUBLIC_CONTACT_ACCESS_KEY \
+    DIRECTUS_URL=$DIRECTUS_URL \
+    PUBLIC_DIRECTUS_URL=$PUBLIC_DIRECTUS_URL
 
 COPY . .
 RUN BASE_PATH= npm run build && mv dist /site-root

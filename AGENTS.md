@@ -1,3 +1,13 @@
+## Content
+
+The projects are content, not code: they live in a Directus CMS and the build
+reads them over its REST API. `src/lib/cms.ts` is the whole of that seam — do
+not add a project by editing a component or the i18n dictionary. `cms/README.md`
+covers running the CMS, the three URLs it is reached by, and the rebuild hook.
+
+Their copy is bilingual in the CMS (`*_en` / `*_hu` fields), which is why
+`src/i18n/ui.ts` holds only the labels around a project and none of its text.
+
 ## Development
 
 When starting the dev server, use background mode:

@@ -3,10 +3,10 @@ import PlateScene from './PlateScene.astro';
 import Panel from './Panel.astro';
 import Arrow from '../Arrow.astro';
 import Thumb from '../Thumb.astro';
-import edortechShot from '../../assets/edortech_landing.png';
 import plateHome from '../../assets/bigger-bg.jpeg';
 import { quadBounds } from '../../lib/quad';
 import { HOME_PLATE, HOME_CONTENT, HOME_SPACE, homePanels as q } from '../../lib/panels';
+import { getProjects, copyFor, assetUrl } from '../../lib/projects';
 import { t, path, links, type Lang, here as currentPath } from '../../i18n/ui';
 
 interface Props {
@@ -16,6 +16,15 @@ const { lang } = Astro.props;
 const tr = t(lang);
 
 const here = currentPath(Astro.url.pathname);
+
+// The featured screens follow the CMS order, so a reorder in the admin changes
+// what the concourse shows. With nothing published the screens stay unlit.
+const projects = await getProjects();
+const featured = projects[0];
+const shown = featured ? copyFor(featured, lang) : null;
+const featuredHref = featured ? path(lang, `/projects/${featured.slug}`) : undefined;
+const featuredShot =
+  featured?.thumbnail ? assetUrl(featured.thumbnail, 1280) : undefined;
 
 // Inter Black, uppercase, tight tracking runs at roughly this fraction of the
 // font size per character. Sizing from it keeps a long word — Hungarian's
@@ -81,33 +90,44 @@ const gates = [
 
   <Panel quad={q.current} surface="sheet" class="current">
     <h2 class="current__title">{tr('board.current')}</h2>
-    <a href={path(lang, '/projects/edortech')} class="card">
-      <Thumb label={tr('p.edortech.title')} src={edortechShot} sizes="25vw" tone="dark" class="card__thumb" />
+    <a href={featuredHref} class="card">
+      <Thumb label={shown.title} src={featuredShot} logo={featured.thumbnail_is_logo} sizes="25vw" tone="dark" class="card__thumb" />
       <span class="card__body">
         <span class="card__status"><i class="dot dot--live"></i>{tr('board.status.live')}</span>
-        <span class="card__name">{tr('p.edortech.title')}</span>
-        <span class="card__role">{tr('p.edortech.role')}</span>
-        <span class="card__blurb">{tr('p.edortech.blurb')}</span>
+        <span class="card__name">{shown.title}</span>
+        <span class="card__role">{shown.role}</span>
+        <span class="card__blurb">{shown.blurb}</span>
         <span class="card__cta">{tr('board.readCase')} <Arrow dir="right" class="cta__arrow" /></span>
       </span>
     </a>
   </Panel>
   -->
 
-  <Panel quad={q.featuredArt} class="screen screen--art" href={path(lang, '/projects/edortech')}
-    label={tr('p.edortech.title')}>
-    <Thumb label={tr('p.edortech.title')} src={edortechShot} sizes="35vw" class="screen__thumb" />
-  </Panel>
+  {featured && shown ? (
+    <>
+      <Panel quad={q.featuredArt} class="screen screen--art" href={featuredHref} label={shown.title}>
+        <Thumb label={shown.title} src={featuredShot} logo={featured.thumbnail_is_logo} sizes="35vw" class="screen__thumb" />
+      </Panel>
 
-  <!-- The whole panel is one link, so a "read the case study" line underneath it
-       only repeats what the arrow already says. -->
-  <Panel quad={q.featuredText} class="screen screen--text" href={path(lang, '/projects/edortech')}>
-    <span class="screen__eyebrow">{tr('board.featured')}</span>
-    <span class="screen__name">{tr('p.edortech.title')}</span>
-    <span class="card__status"><i class="dot dot--live"></i>{tr('board.status.live')}</span>
-    <span class="screen__role">{tr('p.edortech.role')}</span>
-    <span class="screen__go"><Arrow dir="right" class="cta__arrow" /></span>
-  </Panel>
+      <!-- The whole panel is one link, so a "read the case study" line underneath
+           it only repeats what the arrow already says. -->
+      <Panel quad={q.featuredText} class="screen screen--text" href={featuredHref}>
+        <span class="screen__eyebrow">{tr('board.featured')}</span>
+        <span class="screen__name">{shown.title}</span>
+        <span class="card__status">
+          <i class:list={['dot', featured.status === 'live' && 'dot--live']} />
+          {featured.status === 'live' ? tr('board.status.live') : tr('board.status.dev')}
+        </span>
+        <span class="screen__role">{shown.role}</span>
+        <span class="screen__go"><Arrow dir="right" class="cta__arrow" /></span>
+      </Panel>
+    </>
+  ) : (
+    <>
+      <Panel quad={q.featuredArt} class="screen screen--art" />
+      <Panel quad={q.featuredText} class="screen screen--text" />
+    </>
+  )}
 
   <Panel quad={q.outbound} class="outbound">
     <a href={links.github} target="_blank" rel="noopener noreferrer" class="outbound__link">
