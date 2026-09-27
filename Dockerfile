@@ -20,17 +20,13 @@ ARG PUBLIC_CONTACT_ACCESS_KEY=""
 # egy közös docker hálózaton a szolgáltatás neve). Ha nem elérhető, a build
 # szándékosan elhasal, hogy ne kerüljön ki projektek nélküli oldal.
 ARG DIRECTUS_URL="http://localhost:8055"
-
-# A kész HTML-be írt képcímek alapja. Ezt már a LÁTOGATÓ böngészője kéri le,
-# ezért a CMS nyilvános címe kell ide (pl. https://cms.martinporkolab.hu).
-# Üresen hagyva a DIRECTUS_URL-t használja.
-ARG PUBLIC_DIRECTUS_URL=""
+# A képeket is innen másolja a build az oldal mellé, így a CMS-nek nem kell
+# nyilvánosnak lennie.
 
 ENV PUBLIC_CONTACT_EMAIL=$PUBLIC_CONTACT_EMAIL \
     PUBLIC_CONTACT_ENDPOINT=$PUBLIC_CONTACT_ENDPOINT \
     PUBLIC_CONTACT_ACCESS_KEY=$PUBLIC_CONTACT_ACCESS_KEY \
-    DIRECTUS_URL=$DIRECTUS_URL \
-    PUBLIC_DIRECTUS_URL=$PUBLIC_DIRECTUS_URL
+    DIRECTUS_URL=$DIRECTUS_URL
 
 COPY . .
 RUN BASE_PATH= npm run build && mv dist /site-root

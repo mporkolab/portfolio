@@ -31,18 +31,20 @@ e-mail/jelszó párossal.
 A `setup.mjs` csak hozzáad: egy már felállított példányon újrafuttatva nem írja
 felül azt, amit közben az adminban szerkesztettél.
 
-## A három cím
+## A CMS címe
 
-Ez az egyetlen pont, ami elsőre becsapós. A CMS címét három helyről kérik le, és
-ezek nem ugyanazok:
+A CMS-t **csak a build** kéri le, a látogató böngészője soha: a szövegek a
+kész HTML-be kerülnek, a képeket pedig a build a `dist/cms-assets/` alá másolja
+(`src/lib/cms-assets.ts`). Ezért a CMS maradhat VPN mögött, élesben is elég a
+helyi cím. A repo `.env`-jében két sor van, mert a build két helyről futhat:
 
-| Változó (a repo `.env`-jében) | Ki kéri le |
-| --- | --- |
-| `DIRECTUS_URL` | a hoszton futó `npm run build` |
-| `DIRECTUS_BUILD_URL` | a `docker compose build` konténere — a hoszt localhostja onnan nem látszik, ezért `host.docker.internal` |
-| `PUBLIC_DIRECTUS_URL` | a **látogató böngészője**: ez kerül a kész HTML képcímeibe |
+| Változó (a repo `.env`-jében) | Ki kéri le | Érték |
+| --- | --- | --- |
+| `DIRECTUS_URL` | a hoszton futó `npm run build` | `http://localhost:8055` |
+| `DIRECTUS_BUILD_URL` | a `docker compose build` konténere — onnan a localhost maga a konténer | `http://host.docker.internal:8055` |
 
-Élesben mind a három lehet egyszerűen `https://cms.martinporkolab.hu`.
+Egy kép csak újraépítés után cserélődik az oldalon — mentéskor ezt a hook
+elintézi.
 
 Ha a CMS a build közben nem érhető el, a build **szándékosan elhasal**. Egy
 csendben kiadott, projektek nélküli oldal rosszabb lenne, mint egy megszakadt
@@ -70,9 +72,6 @@ lecserélve. A `rebuild.sh` előbb épít, és csak sikeres build után cserél.
 ## Élesbe (homelab)
 
 1. A repo a szerveren, `cms/.env` kitöltve, a gyökérből `docker compose up -d`.
-2. A reverse proxyban (Cosmos Cloud) új szolgáltatás a `cms.martinporkolab.hu`
-   subdomainre, a `8055`-ös portra.
-3. Az admin felület Cloudflare Access (Zero Trust → Access → Application) mögé,
-   csak a saját fiókodra engedve. A `/items/*` és az `/assets/*` viszont
-   publikus maradjon, mert azokat a build és a látogató böngészője kéri le.
-4. A repo `.env`-jében mind a három cím a nyilvános URL.
+2. A repo `.env`-jében a két Directus-cím ugyanaz, mint helyben.
+3. Az admin felület (`:8055`) csak VPN-ről (Tailscale) legyen elérhető: ne kerüljön
+   a reverse proxy mögé, és ne kapjon nyilvános domaint.

@@ -10,6 +10,7 @@
  */
 
 import type { Lang } from '../i18n/ui';
+import { ASSET_DIR, assetFileName, remoteAssetUrl } from './cms-assets';
 
 const trim = (u: string) => u.replace(/\/$/, '');
 
@@ -19,17 +20,6 @@ const trim = (u: string) => u.replace(/\/$/, '');
  * or the host gateway.
  */
 const API_URL = trim(import.meta.env.DIRECTUS_URL ?? 'http://localhost:8055');
-
-/**
- * The base the thumbnail URLs in the shipped HTML are written against. That
- * one is fetched by the visitor's browser, so it has to be the CMS's public
- * address, which is not always the address the build used. Where they are the
- * same — a plain `npm run build` against a local CMS — saying it twice is not
- * required.
- */
-const PUBLIC_URL = trim(
-  import.meta.env.PUBLIC_DIRECTUS_URL || import.meta.env.DIRECTUS_URL || 'http://localhost:8055',
-);
 
 /** How a project is stored in the `projects` collection. */
 export interface CmsProject {
@@ -84,10 +74,18 @@ export function copyFor(p: CmsProject, lang: Lang): ProjectCopy {
   };
 }
 
-/** A CMS-hosted image, at the width the frame actually draws it. */
+/**
+ * A CMS-hosted image, at the width the frame actually draws it.
+ *
+ * In a build this is a path on the site itself: the file is copied into the
+ * output once the pages are written (cms-assets.ts), so a visitor's browser
+ * never talks to the CMS and the CMS need not be public. The dev server has no
+ * output to copy into, so there it points at the CMS directly.
+ */
 export function assetUrl(fileId: string, width?: number): string {
-  const q = width ? `?width=${width}&format=webp&quality=80` : '';
-  return `${PUBLIC_URL}/assets/${fileId}${q}`;
+  if (import.meta.env.DEV) return remoteAssetUrl(API_URL, fileId, width);
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+  return `${base}/${ASSET_DIR}/${assetFileName(fileId, width)}`;
 }
 
 const FIELDS = [
@@ -133,7 +131,7 @@ async function load(): Promise<CmsProject[]> {
   }
   // An empty list is a legitimate answer — the CMS answered, nothing is
   // published — so it is not treated as a failure.
-  console.info(`[cms] ${data.length} project(s) from ${API_URL}; assets served from ${PUBLIC_URL}`);
+  console.info(`[cms] ${data.length} project(s) from ${API_URL}`);
   return data;
 }
 
