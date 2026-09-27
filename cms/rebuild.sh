@@ -8,7 +8,8 @@
 #   cms/rebuild.sh
 #
 # Meant to be run by cms/rebuild-hook.mjs on a Directus save, and safe to run
-# by hand.
+# by hand — also the way to start everything on a fresh box, since a plain
+# `docker compose up` would build the site before the CMS it reads from is up.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -24,7 +25,17 @@ fi
 
 echo "==> $(date '+%F %T')  rebuilding from $DIRECTUS_URL"
 
+# The build reads from the CMS, and `docker compose up` builds every image
+# before it starts any container — so on a fresh box the CMS has to be brought
+# up first. A no-op when it is already running.
+docker compose up -d directus-db directus
+
 # Fail early with a clear message rather than deep inside the image build.
+# Directus takes a few seconds to answer after its container starts.
+for _ in $(seq 30); do
+  curl -fsS -m 5 -o /dev/null "$DIRECTUS_URL/server/health" && break
+  sleep 2
+done || true
 if ! curl -fsS -m 10 -o /dev/null "$DIRECTUS_URL/server/health"; then
   echo "!!  $DIRECTUS_URL is not answering; keeping the current release" >&2
   exit 1

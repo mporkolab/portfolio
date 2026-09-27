@@ -19,6 +19,7 @@ admin felületen — nincs hozzá commit.
 cp cms/.env.example cms/.env   # töltsd ki: openssl rand -hex 32 a KEY-hez és a SECRET-hez
 docker compose up -d directus-db directus   # a repo gyökeréből
 node cms/setup.mjs             # séma + publikus olvasás + a két meglévő projekt
+cms/rebuild.sh                 # az oldal megépítése a CMS-ből és elindítása
 ```
 
 A CMS a gyökér `docker-compose.yml`-be van `include`-olva, így a `portfolio`
@@ -71,7 +72,10 @@ lecserélve. A `rebuild.sh` előbb épít, és csak sikeres build után cserél.
 
 ## Élesbe (homelab)
 
-1. A repo a szerveren, `cms/.env` kitöltve, a gyökérből `docker compose up -d`.
+1. A repo a szerveren, `cms/.env` kitöltve, a gyökérből `cms/rebuild.sh`.
+   Ez előbb a CMS-t indítja el, és csak utána építi az oldalt. A sima
+   `docker compose up -d` itt nem jó: az minden image-et megépít, mielőtt bármit
+   elindítana, így az oldal buildje egy még le nem futó CMS-ből olvasna.
 2. A repo `.env`-jében a két Directus-cím ugyanaz, mint helyben.
 3. Az admin felület (`:8055`) csak VPN-ről (Tailscale) legyen elérhető: ne kerüljön
    a reverse proxy mögé, és ne kapjon nyilvános domaint.
