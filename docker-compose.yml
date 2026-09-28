@@ -25,7 +25,9 @@ services:
     environment:
       # A szerver kérésenként olvassa a projekteket, a compose hálózaton.
       GHOST_URL: http://ghost:2368
-      GHOST_CONTENT_KEY: "${GHOST_CONTENT_KEY:?add GHOST_CONTENT_KEY to .env (Ghost admin → Settings → Integrations)}"
+      # Nem kötelező az induláshoz: egy új Ghostban a kulcs csak az első indulás
+      # után hozható létre. Amíg nincs meg, a projektoldalak hibát adnak.
+      GHOST_CONTENT_KEY: "${GHOST_CONTENT_KEY:-}"
     depends_on:
       - ghost
     restart: unless-stopped
