@@ -1,4 +1,6 @@
 ---
+// Shows no project, so it is built once rather than on each request.
+export const prerender = true;
 // Development aid: draws every measured panel over its plate so the geometry can
 // be checked and refined. Not part of the site; excluded from production builds.
 import PlateScene from '../../components/plate/PlateScene.astro';

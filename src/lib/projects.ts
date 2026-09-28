@@ -1,13 +1,13 @@
 /**
- * Everything shown on the wall. The projects themselves live in Directus (see
+ * Everything shown on the wall. The projects themselves live in Ghost (see
  * `cms.ts`); this module only shapes them for the wall's geometry.
  */
 
 export { getProjects, copyFor, assetUrl } from './cms';
-export type { CmsProject as Project, ProjectCopy } from './cms';
+export type { Project, ProjectCopy } from './cms';
 
 import { getProjects } from './cms';
-import type { CmsProject } from './cms';
+import type { Project } from './cms';
 
 /** The wall holds four project frames, so every page is a set of four. */
 export const PAGE_FRAMES = 4;
@@ -21,6 +21,6 @@ export function paginate<T>(items: T[]): T[][] {
   return pages;
 }
 
-export async function projectPages(): Promise<CmsProject[][]> {
+export async function projectPages(): Promise<Project[][]> {
   return paginate(await getProjects());
 }

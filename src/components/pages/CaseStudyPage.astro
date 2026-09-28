@@ -12,7 +12,6 @@ interface Props {
 const { lang, project } = Astro.props;
 const tr = t(lang);
 
-// The story reads as paragraphs, not one block.
 const { title, role, blurb, story, note } = copyFor(project, lang);
 const statusLabel = project.status === 'live' ? tr('board.status.live') : tr('board.status.dev');
 ---
@@ -35,10 +34,11 @@ const statusLabel = project.status === 'live' ? tr('board.status.live') : tr('bo
       class="mt-10 w-full aspect-[16/9]"
     />
 
-    {story.length > 0 && (
-      <div class="mt-10 border-t-2 border-panel-ink pt-8 flex flex-col gap-4">
-        {story.map((para) => <p class="text-base sm:text-lg leading-relaxed text-panel-ink/80">{para}</p>)}
-      </div>
+    {story && (
+      <div
+        class="mt-10 border-t-2 border-panel-ink pt-8 flex flex-col gap-4 text-base sm:text-lg leading-relaxed text-panel-ink/80 [&_a]:underline [&_strong]:font-bold"
+        set:html={story}
+      />
     )}
 
     {project.stack && (
@@ -51,9 +51,10 @@ const statusLabel = project.status === 'live' ? tr('board.status.live') : tr('bo
     <!-- A caveat the project itself carries, e.g. no accuracy figures while a
          model is still in development. -->
     {note && (
-      <p class="mt-10 border-t-2 border-panel-ink pt-6 text-xs sm:text-sm font-bold uppercase tracking-[0.25em] text-panel-ink/50">
-        {note}
-      </p>
+      <p
+        class="mt-10 border-t-2 border-panel-ink pt-6 text-xs sm:text-sm font-bold uppercase tracking-[0.25em] text-panel-ink/50"
+        set:html={note}
+      />
     )}
 
     <!-- Only where there is something live to visit. -->

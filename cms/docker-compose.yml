@@ -1,72 +1,45 @@
-# Directus a portfólió tartalmához. A projektek innen jönnek, nem a kódból.
+# Ghost a portfólió tartalmához. A projektek innen jönnek, nem a kódból: a
+# portfólió szervere kérésenként olvassa őket, így egy publikált poszt azonnal kint van.
 # A gyökér docker-compose.yml include-olja, onnan indítsd: docker compose up -d
 # A titkok a cms/.env fájlból jönnek (nincs verziókövetve) — cms/.env.example a minta.
 services:
-  directus-db:
-    image: postgres:16-alpine
+  ghost-db:
+    image: mysql:8.4
     container_name: portfolio-cms-db
     restart: unless-stopped
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - ./data/mysql:/var/lib/mysql
     environment:
-      POSTGRES_USER: directus
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?add DB_PASSWORD to cms/.env}
-      POSTGRES_DB: directus
+      MYSQL_ROOT_PASSWORD: ${GHOST_DB_ROOT_PASSWORD:?add GHOST_DB_ROOT_PASSWORD to cms/.env}
+      MYSQL_DATABASE: ghost
+      MYSQL_USER: ghost
+      MYSQL_PASSWORD: ${GHOST_DB_PASSWORD:?add GHOST_DB_PASSWORD to cms/.env}
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U directus -d directus']
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -u ghost -p"$$MYSQL_PASSWORD" --silent']
       interval: 5s
       timeout: 5s
-      retries: 20
+      retries: 30
 
-  directus:
-    image: directus/directus:11
+  ghost:
+    image: ghost:6-alpine
     container_name: portfolio-cms
     restart: unless-stopped
     ports:
-      - '${CMS_PORT:-8055}:8055'
+      - '${GHOST_PORT:-2368}:2368'
     volumes:
-      - ./data/uploads:/directus/uploads
-      - ./data/extensions:/directus/extensions
+      - ./data/content:/var/lib/ghost/content
     depends_on:
-      directus-db:
+      ghost-db:
         condition: service_healthy
     environment:
-      KEY: ${CMS_KEY:?add CMS_KEY to cms/.env}
-      SECRET: ${CMS_SECRET:?add CMS_SECRET to cms/.env}
-      DB_CLIENT: pg
-      DB_HOST: directus-db
-      DB_PORT: '5432'
-      DB_DATABASE: directus
-      DB_USER: directus
-      DB_PASSWORD: ${DB_PASSWORD}
-      ADMIN_EMAIL: ${CMS_ADMIN_EMAIL:?add CMS_ADMIN_EMAIL to cms/.env}
-      ADMIN_PASSWORD: ${CMS_ADMIN_PASSWORD:?add CMS_ADMIN_PASSWORD to cms/.env}
-      PUBLIC_URL: ${CMS_PUBLIC_URL:-http://localhost:8055}
-      # A build a nyilvános (autentikáció nélküli) olvasásra támaszkodik.
-      CORS_ENABLED: 'true'
+      # Az a cím, ahol az admint böngészőből nyitod. A Ghost erre irányít át.
+      url: ${GHOST_PUBLIC_URL:-http://localhost:2368}
+      database__client: mysql
+      database__connection__host: ghost-db
+      database__connection__user: ghost
+      database__connection__password: ${GHOST_DB_PASSWORD}
+      database__connection__database: ghost
+      # Levelezés nincs beállítva, így az új eszközről való belépés e-mailes
+      # megerősítése sem működhetne. Az admin úgyis csak VPN-ről érhető el.
+      security__staffDeviceVerification: 'false'
 
-  # Mentéskor a Directus Flow-ja ezt hívja (http://rebuild-hook:9009/rebuild), ez
-  # pedig lefuttatja a cms/rebuild.sh-t. Port nincs kiadva: csak a compose
-  # hálózaton, a Directus felől érhető el. A hoszt Docker-démonján épít — a
-  # sockettel ugyanazt teheti, amit a gépen egy docker parancs.
-  rebuild-hook:
-    build:
-      context: .
-      dockerfile_inline: |
-        FROM docker:cli
-        RUN apk add --no-cache bash curl nodejs
-    container_name: portfolio-rebuild-hook
-    restart: unless-stopped
-    working_dir: /repo
-    entrypoint: ['node', 'cms/rebuild-hook.mjs']
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ..:/repo:ro
-    environment:
-      REBUILD_TOKEN: ${REBUILD_TOKEN:?add REBUILD_TOKEN to cms/.env}
-      REBUILD_HOST: 0.0.0.0
-      # A rebuild.sh a CMS-t innen, a compose hálózaton ellenőrzi.
-      REBUILD_CMS_URL: http://directus:8055
-      REBUILD_IN_CONTAINER: '1'
-    depends_on:
-      - directus
