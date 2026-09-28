@@ -99,12 +99,7 @@ alapértelmezett témánál.
    (a Ghost és a MySQL leállítva), és a repo `.env`-jébe ugyanaz a
    `GHOST_CONTENT_KEY` kerüljön. Így fiók, projektek, képek és kulcs is megvan.
    Üres Ghosttal kezdve helyette a fenti négy kézi lépés kell.
-3. A repo `.env`-jében a `COMPOSE_FILE` és a `PROXY_NETWORK` sor (lásd
-   `.env.example`), hogy a Cosmos elérje a konténert.
-4. `docker compose up -d --build`. Frissítés (új kód) után ugyanez.
-   VPN-ről az oldal a `http://<tailscale-ip>:8080/` címen érhető el; egy
-   `/portfolio`-féle al-útvonal csak `BASE_PATH`-szal működik, és akkor a
-   domain gyökere nem.
-5. Az admin felület (`:2368`) csak VPN-ről (Tailscale) legyen elérhető: ne
+3. `docker compose up -d --build`. Frissítés (új kód) után ugyanez.
+4. Az admin felület (`:2368`) csak VPN-ről (Tailscale) legyen elérhető: ne
    kerüljön a reverse proxy mögé, és ne kapjon nyilvános domaint. A proxy
    célja továbbra is `http://portfolio:80`.

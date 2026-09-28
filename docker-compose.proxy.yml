@@ -1,7 +1,6 @@
-# Reverse proxy (pl. Cosmos) mögé. A szerver .env-jébe:
-#   COMPOSE_FILE=docker-compose.yml:docker-compose.proxy.yml
-#   PROXY_NETWORK=<a proxy hálózata>
-# Így a sima `docker compose up -d` is ezt a fájlt is használja.
+# Reverse proxy (pl. Cosmos) mögé:
+#   PROXY_NETWORK=<a proxy hálózata> \
+#   docker compose -f docker-compose.yml -f docker-compose.proxy.yml up -d
 #
 # A proxy route célja ilyenkor: http://portfolio:80
 services:
