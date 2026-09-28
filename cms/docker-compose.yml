@@ -2,6 +2,9 @@
 # portfólió szervere kérésenként olvassa őket, így egy publikált poszt azonnal kint van.
 # A gyökér docker-compose.yml include-olja, onnan indítsd: docker compose up -d
 # A titkok a cms/.env fájlból jönnek (nincs verziókövetve) — cms/.env.example a minta.
+# Ugyanaz a projektnév, mint a gyökérben: így a cms/ mappából indítva is ugyanazt
+# a projektet kezeli, és nem ütközik a saját konténereivel.
+name: portfolio
 services:
   ghost-db:
     image: mysql:8.4
