@@ -35,10 +35,12 @@ az oldalra; a piszkozat nem.
 A sorrend: a kiemelt elöl, utána a legfrissebb publikálási dátum. Átrendezni a
 publikálás dátumával lehet (Post settings → Publish date).
 
-**Két nyelv, két bejegyzés.** Minden projekt két bejegyzés: egy `#en` és egy
-`#hu` belső taggel (a `#` a tag nevében: így belső, nem látszik stackként). A
-kettőt a slug köti össze, a `-en`/`-hu` végződés nélkül: `edortech-en` +
-`edortech-hu` (vagy `edortech` + `edortech-hu`) → `/projects/edortech`.
+**Két nyelv, két bejegyzés.** Minden projekt két bejegyzés: az egyiken `en`,
+a másikon `hu` tag (`#en`/`#hu` is jó; a nyelvi tag sosem számít szerepnek vagy
+stacknek). A kettőt a slug köti össze, a `-en`/`-hu` végződés nélkül:
+`edortech-en` + `edortech-hu` (vagy `edortech` + `edortech-hu`) →
+`/projects/edortech`. Ha a két bejegyzés címe azonos, a Ghost a másodiknak
+`edortech-2` slugot ad — ez is összeáll a párjával.
 Mindkettőből a saját szövege számít: cím, első tag (szerep), excerpt, szöveg és
 callout. A kép, a stack, a link, a `#logo` és a csillag az `#en` bejegyzésből
 jön, ami ott hiányzik, az a `#hu`-ból. Ha csak az egyik nyelv van meg, mindkét

@@ -119,7 +119,7 @@ function copyOf(post: GhostPost): ProjectCopy {
   const notes = [...html.matchAll(CALLOUT)].map((m) => m[1]);
   return {
     title: post.title,
-    role: post.tags.find((t) => t.visibility === 'public')?.name ?? '',
+    role: shownTags(post)[0] ?? '',
     blurb: post.custom_excerpt ?? '',
     story: html.replace(CALLOUT, '').trim(),
     note: notes.length ? notes.join(' ') : null,
@@ -127,6 +127,18 @@ function copyOf(post: GhostPost): ProjectCopy {
 }
 
 const hasTag = (post: GhostPost, slug: string) => post.tags.some((t) => t.slug === slug);
+
+/**
+ * The language tag, taken as `#en`/`#hu` or as plain `en`/`hu` — the `#` is
+ * easy to leave off in the editor, and either way it is never role or stack.
+ */
+const LANG_TAG_SLUGS = new Set(['en', 'hu', 'hash-en', 'hash-hu']);
+const langOf = (post: GhostPost): Lang | null =>
+  hasTag(post, 'hash-en') || hasTag(post, 'en') ? 'en' : hasTag(post, 'hash-hu') || hasTag(post, 'hu') ? 'hu' : null;
+
+/** The public tags that mean something on the site: role first, then stack. */
+const shownTags = (post: GhostPost) =>
+  post.tags.filter((t) => t.visibility === 'public' && !LANG_TAG_SLUGS.has(t.slug)).map((t) => t.name);
 
 async function load(): Promise<Project[]> {
   let posts: GhostPost[];
@@ -152,13 +164,20 @@ async function load(): Promise<Project[]> {
   // Paired in the order the API gives, so the ★ and the publish date still
   // decide where a project stands.
   const pairs = new Map<string, { en?: GhostPost; hu?: GhostPost }>();
+  const tagged: [GhostPost, Lang][] = [];
   for (const post of posts) {
-    const lang = hasTag(post, 'hash-en') ? 'en' : hasTag(post, 'hash-hu') ? 'hu' : null;
-    if (!lang) {
-      console.warn(`[cms] "${post.slug}" has neither #en nor #hu, so it is not on the site`);
-      continue;
-    }
-    const slug = post.slug.replace(/-(en|hu)$/, '');
+    const lang = langOf(post);
+    if (lang) tagged.push([post, lang]);
+    else console.warn(`[cms] "${post.slug}" has neither #en nor #hu, so it is not on the site`);
+  }
+  const base = (post: GhostPost) => post.slug.replace(/-(en|hu)$/, '');
+  const slugs = new Set(tagged.map(([post]) => base(post)));
+  for (const [post, lang] of tagged) {
+    let slug = base(post);
+    // Two posts with one title get `edortech` and `edortech-2` from Ghost; the
+    // second still belongs with the first when its language is the missing one.
+    const numbered = slug.replace(/-\d+$/, '');
+    if (numbered !== slug && slugs.has(numbered) && !pairs.get(numbered)?.[lang]) slug = numbered;
     const pair = pairs.get(slug) ?? {};
     if (pair[lang]) console.warn(`[cms] two #${lang} posts for "${slug}"; "${post.slug}" is ignored`);
     else pair[lang] = post;
@@ -170,7 +189,6 @@ async function load(): Promise<Project[]> {
     const main = (en ?? hu)!;
     const image = en?.feature_image ?? hu?.feature_image ?? null;
     const url = en?.canonical_url ?? hu?.canonical_url ?? null;
-    const publicTags = main.tags.filter((t) => t.visibility === 'public').map((t) => t.name);
     projects.push({
       slug,
       title: main.title,
@@ -178,7 +196,7 @@ async function load(): Promise<Project[]> {
       thumbnail: image ? imagePath(image) : null,
       thumbnail_is_logo: [en, hu].some((p) => p && hasTag(p, 'hash-logo')),
       live_url: url,
-      stack: publicTags.slice(1).join(' · ') || null,
+      stack: shownTags(main).slice(1).join(' · ') || null,
       copy: { en: en ? copyOf(en) : null, hu: hu ? copyOf(hu) : null },
     });
   }
