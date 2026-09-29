@@ -29,7 +29,7 @@ az oldalra; a piszkozat nem.
 | A többi tag | a stack, pl. `Astro`, `Three.js` |
 | Post settings → Meta data → **Canonical URL** | az élő oldal linkje; akinek van, az „Élő”, akinek nincs, az „Fejlesztés alatt” |
 | **Feature this post** (csillag) | elöl áll a falon, és ez a főoldal kiemelt projektje |
-| `#logo` belső tag | a kép logó: egészben, a sötét kereten jelenik meg, nem kivágva |
+| `logo` (vagy `#logo`) tag, bármelyik nyelvi posztra | a kép logó: egészben, a sötét kereten jelenik meg, nem kivágva |
 | Post URL (slug) | a cím: `/projects/<slug>`, a `-en`/`-hu` végződés nélkül |
 
 A sorrend: a kiemelt elöl, utána a legfrissebb publikálási dátum. Átrendezni a

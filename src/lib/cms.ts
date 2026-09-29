@@ -129,16 +129,17 @@ function copyOf(post: GhostPost): ProjectCopy {
 const hasTag = (post: GhostPost, slug: string) => post.tags.some((t) => t.slug === slug);
 
 /**
- * The language tag, taken as `#en`/`#hu` or as plain `en`/`hu` — the `#` is
- * easy to leave off in the editor, and either way it is never role or stack.
+ * The tags that are switches rather than text: the language, and the logo
+ * flag. Each is taken as `#en` or as plain `en` — the `#` is easy to leave off
+ * in the editor — and either way it is never role or stack.
  */
-const LANG_TAG_SLUGS = new Set(['en', 'hu', 'hash-en', 'hash-hu']);
+const SWITCH_TAG_SLUGS = new Set(['en', 'hu', 'logo', 'hash-en', 'hash-hu', 'hash-logo']);
 const langOf = (post: GhostPost): Lang | null =>
   hasTag(post, 'hash-en') || hasTag(post, 'en') ? 'en' : hasTag(post, 'hash-hu') || hasTag(post, 'hu') ? 'hu' : null;
 
 /** The public tags that mean something on the site: role first, then stack. */
 const shownTags = (post: GhostPost) =>
-  post.tags.filter((t) => t.visibility === 'public' && !LANG_TAG_SLUGS.has(t.slug)).map((t) => t.name);
+  post.tags.filter((t) => t.visibility === 'public' && !SWITCH_TAG_SLUGS.has(t.slug)).map((t) => t.name);
 
 async function load(): Promise<Project[]> {
   let posts: GhostPost[];
@@ -194,7 +195,7 @@ async function load(): Promise<Project[]> {
       title: main.title,
       status: url ? 'live' : 'dev',
       thumbnail: image ? imagePath(image) : null,
-      thumbnail_is_logo: [en, hu].some((p) => p && hasTag(p, 'hash-logo')),
+      thumbnail_is_logo: [en, hu].some((p) => p && (hasTag(p, 'hash-logo') || hasTag(p, 'logo'))),
       live_url: url,
       stack: shownTags(main).slice(1).join(' · ') || null,
       copy: { en: en ? copyOf(en) : null, hu: hu ? copyOf(hu) : null },
