@@ -36,7 +36,7 @@ const statusLabel = project.status === 'live' ? tr('board.status.live') : tr('bo
 
     {story && (
       <div
-        class="mt-10 border-t-2 border-panel-ink pt-8 flex flex-col gap-4 text-base sm:text-lg leading-relaxed text-panel-ink/80 [&_a]:underline [&_strong]:font-bold"
+        class="mt-10 border-t-2 border-panel-ink pt-8 flex flex-col gap-4 text-base sm:text-lg leading-relaxed text-panel-ink/80 [&_a]:underline [&_strong]:font-bold [&_img]:max-w-full [&_img]:h-auto [&_figcaption]:mt-2 [&_figcaption]:text-sm"
         set:html={story}
       />
     )}

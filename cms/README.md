@@ -42,8 +42,8 @@ szöveg és callout. A kép, a stack, a link, a `#logo` és a csillag az angol
 bejegyzésből jön. Ahol nincs magyar változat, ott a magyar oldal is az angolt
 mutatja.
 
-A szövegbe tett képek és beágyazások nem kerülnek át az oldalra — a képnek a
-Feature image a helye.
+A szövegbe tett képek is megjelennek (a szerver adja tovább őket, mint a
+Feature image-et); a kártyán és a falon viszont mindig a Feature image látszik.
 
 ## Indítás
 

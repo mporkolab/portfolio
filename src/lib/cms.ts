@@ -85,6 +85,15 @@ export function assetUrl(thumbnail: string, width: 352 | 640 | 720 | 1280): stri
 /** Ghost writes absolute URLs with its public address; only the path matters. */
 const imagePath = (src: string) => new URL(src).pathname.replace(/^.*?\/content\/images\//, '');
 
+/**
+ * Images put in the post body carry the same address, which a visitor cannot
+ * reach (the CMS is VPN-only) — so they are pointed at the site's own
+ * /content/images proxy too, srcset sizes included.
+ */
+const GHOST_IMAGE = /\bhttps?:\/\/[^\s"',)]+?\/content\/images\//g;
+const localImages = (html: string) =>
+  html.replace(GHOST_IMAGE, `${import.meta.env.BASE_URL.replace(/\/$/, '')}/content/images/`);
+
 /** What the Content API returns for a post, as far as this site reads it. */
 interface GhostPost {
   slug: string;
@@ -100,7 +109,7 @@ const CALLOUT =
   /<div class="kg-card kg-callout-card[^"]*">(?:<div class="kg-callout-emoji">[\s\S]*?<\/div>)?<div class="kg-callout-text">([\s\S]*?)<\/div><\/div>/g;
 
 function copyOf(post: GhostPost): ProjectCopy {
-  const html = post.html ?? '';
+  const html = localImages(post.html ?? '');
   const notes = [...html.matchAll(CALLOUT)].map((m) => m[1]);
   return {
     title: post.title,
