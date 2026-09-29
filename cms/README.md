@@ -30,17 +30,21 @@ az oldalra; a piszkozat nem.
 | Post settings → Meta data → **Canonical URL** | az élő oldal linkje; akinek van, az „Élő”, akinek nincs, az „Fejlesztés alatt” |
 | **Feature this post** (csillag) | elöl áll a falon, és ez a főoldal kiemelt projektje |
 | `#logo` belső tag | a kép logó: egészben, a sötét kereten jelenik meg, nem kivágva |
-| Post URL (slug) | a cím: `/projects/<slug>` |
+| Post URL (slug) | a cím: `/projects/<slug>`, a `-en`/`-hu` végződés nélkül |
 
 A sorrend: a kiemelt elöl, utána a legfrissebb publikálási dátum. Átrendezni a
 publikálás dátumával lehet (Post settings → Publish date).
 
-**Magyar változat.** Minden projekthez tartozik egy második bejegyzés, `#hu`
-belső taggel, amelynek a slugja az angolé `-hu` végződéssel (pl. `edortech` →
-`edortech-hu`). Ebből csak a szöveg számít: cím, első tag (szerep), excerpt,
-szöveg és callout. A kép, a stack, a link, a `#logo` és a csillag az angol
-bejegyzésből jön. Ahol nincs magyar változat, ott a magyar oldal is az angolt
-mutatja.
+**Két nyelv, két bejegyzés.** Minden projekt két bejegyzés: egy `#en` és egy
+`#hu` belső taggel (a `#` a tag nevében: így belső, nem látszik stackként). A
+kettőt a slug köti össze, a `-en`/`-hu` végződés nélkül: `edortech-en` +
+`edortech-hu` (vagy `edortech` + `edortech-hu`) → `/projects/edortech`.
+Mindkettőből a saját szövege számít: cím, első tag (szerep), excerpt, szöveg és
+callout. A kép, a stack, a link, a `#logo` és a csillag az `#en` bejegyzésből
+jön, ami ott hiányzik, az a `#hu`-ból. Ha csak az egyik nyelv van meg, mindkét
+nyelvű oldal azt mutatja.
+
+Amelyik bejegyzésen se `#en`, se `#hu` nincs, az nem kerül ki az oldalra.
 
 A szövegbe tett képek is megjelennek (a szerver adja tovább őket, mint a
 Feature image-et); a kártyán és a falon viszont mindig a Feature image látszik.

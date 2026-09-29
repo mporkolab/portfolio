@@ -1,7 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import CaseStudyPage from '../../../components/pages/CaseStudyPage.astro';
-import { getProjects } from '../../../lib/projects';
+import { getProjects, copyFor } from '../../../lib/projects';
 
 // One case study per project in the CMS. A project published there has its
 // page at once; nothing here names a project.
@@ -10,6 +10,6 @@ if (!project) return new Response(null, { status: 404 });
 
 const lang = 'hu' as const;
 ---
-<Layout title={`${project.title} | Porkoláb Martin`} lang={lang}>
+<Layout title={`${copyFor(project, lang).title} | Porkoláb Martin`} lang={lang}>
   <CaseStudyPage lang={lang} project={project} />
 </Layout>

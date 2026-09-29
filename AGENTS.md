@@ -1,13 +1,14 @@
 ## Content
 
-The projects are content, not code: they live in a Ghost CMS, one post per
+The projects are content, not code: they live in a Ghost CMS, a post per language per
 project, and the server reads them over its Content API on each request
 (`output: 'server'`; pages that show no project are prerendered).
 `src/lib/cms.ts` is the whole of that seam, including which post field means
 what — do not add a project by editing a component or the i18n dictionary.
 `cms/README.md` covers running the CMS and the addresses it is reached by.
 
-Their copy is bilingual in the CMS (a second post tagged `#hu`, slug `<slug>-hu`),
+Their copy is bilingual in the CMS (a post tagged `#en` and one tagged `#hu`,
+paired by slug without the `-en`/`-hu` suffix),
 which is why `src/i18n/ui.ts` holds only the labels around a project and none
 of its text.
 

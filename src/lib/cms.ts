@@ -18,9 +18,14 @@
  *   canonical URL   → the live site; a project with one is "live"
  *   featured (★)    → first on the wall, and the one the home page shows
  *
- * A post tagged #hu is the Hungarian copy of the post whose slug it carries
- * without the `-hu` suffix. It supplies text only (title, role, excerpt,
- * content); everything else comes from the English post.
+ * Every project is written twice: a post tagged #en and one tagged #hu, both
+ * internal tags. The two are paired by slug with any `-en`/`-hu` suffix taken
+ * off (edortech-en + edortech-hu, or edortech + edortech-hu), and that is the
+ * project's address. Each supplies its own text (title, role, excerpt,
+ * content); the rest — image, stack, link, #logo, ★ — comes from the #en post,
+ * or from the #hu one where the #en post leaves it out. A project with only
+ * one of the two shows that one in both languages. A post with neither tag is
+ * not a project, and is left off the site.
  */
 
 import { GHOST_URL, GHOST_CONTENT_KEY as KEY } from 'astro:env/server';
@@ -58,11 +63,12 @@ export interface Project {
   thumbnail_is_logo: boolean;
   live_url: string | null;
   stack: string | null;
-  copy: { en: ProjectCopy; hu: ProjectCopy | null };
+  /** At least one of the two is there; the other language falls back to it. */
+  copy: { en: ProjectCopy | null; hu: ProjectCopy | null };
 }
 
 export function copyFor(p: Project, lang: Lang): ProjectCopy {
-  return (lang === 'hu' && p.copy.hu) || p.copy.en;
+  return (lang === 'hu' ? p.copy.hu ?? p.copy.en : p.copy.en ?? p.copy.hu)!;
 }
 
 /**
@@ -143,26 +149,38 @@ async function load(): Promise<Project[]> {
     );
   }
 
-  const hu = new Map(
-    posts.filter((p) => hasTag(p, 'hash-hu')).map((p) => [p.slug.replace(/-hu$/, ''), p]),
-  );
-  const projects: Project[] = [];
-  for (const post of posts.filter((p) => !hasTag(p, 'hash-hu'))) {
-    const publicTags = post.tags.filter((t) => t.visibility === 'public').map((t) => t.name);
-    projects.push({
-      slug: post.slug,
-      title: post.title,
-      status: post.canonical_url ? 'live' : 'dev',
-      thumbnail: post.feature_image ? imagePath(post.feature_image) : null,
-      thumbnail_is_logo: hasTag(post, 'hash-logo'),
-      live_url: post.canonical_url,
-      stack: publicTags.slice(1).join(' · ') || null,
-      copy: { en: copyOf(post), hu: hu.has(post.slug) ? copyOf(hu.get(post.slug)!) : null },
-    });
-    hu.delete(post.slug);
+  // Paired in the order the API gives, so the ★ and the publish date still
+  // decide where a project stands.
+  const pairs = new Map<string, { en?: GhostPost; hu?: GhostPost }>();
+  for (const post of posts) {
+    const lang = hasTag(post, 'hash-en') ? 'en' : hasTag(post, 'hash-hu') ? 'hu' : null;
+    if (!lang) {
+      console.warn(`[cms] "${post.slug}" has neither #en nor #hu, so it is not on the site`);
+      continue;
+    }
+    const slug = post.slug.replace(/-(en|hu)$/, '');
+    const pair = pairs.get(slug) ?? {};
+    if (pair[lang]) console.warn(`[cms] two #${lang} posts for "${slug}"; "${post.slug}" is ignored`);
+    else pair[lang] = post;
+    pairs.set(slug, pair);
   }
-  for (const slug of hu.keys()) {
-    console.warn(`[cms] ${slug}-hu is tagged #hu but there is no post "${slug}" for it to translate`);
+
+  const projects: Project[] = [];
+  for (const [slug, { en, hu }] of pairs) {
+    const main = (en ?? hu)!;
+    const image = en?.feature_image ?? hu?.feature_image ?? null;
+    const url = en?.canonical_url ?? hu?.canonical_url ?? null;
+    const publicTags = main.tags.filter((t) => t.visibility === 'public').map((t) => t.name);
+    projects.push({
+      slug,
+      title: main.title,
+      status: url ? 'live' : 'dev',
+      thumbnail: image ? imagePath(image) : null,
+      thumbnail_is_logo: [en, hu].some((p) => p && hasTag(p, 'hash-logo')),
+      live_url: url,
+      stack: publicTags.slice(1).join(' · ') || null,
+      copy: { en: en ? copyOf(en) : null, hu: hu ? copyOf(hu) : null },
+    });
   }
 
   // An empty list is a legitimate answer — the CMS answered, nothing is
