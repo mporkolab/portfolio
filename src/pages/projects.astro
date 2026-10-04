@@ -1,4 +1,5 @@
 ---
+import { t } from '../i18n/ui';
 import Layout from '../layouts/Layout.astro';
 import ProjectsPage from '../components/pages/ProjectsPage.astro';
 import ProjectsPlate from '../components/plate/ProjectsPlate.astro';
@@ -8,9 +9,10 @@ import { projectPages } from '../lib/projects';
 import { cameraTurn } from '../lib/transitions';
 
 const lang = 'en' as const;
+const tr = t(lang);
 const pages = await projectPages();
 ---
-<Layout title="Porkoláb Martin | Projects" lang={lang}>
+<Layout title="Porkoláb Martin | Projects" lang={lang} description={tr('meta.projects')} pageType="CollectionPage">
   <div class="wide-only" transition:name="scene" transition:animate={cameraTurn}>
     <ProjectsPlate lang={lang} page={1} items={pages[0]} hasNext={pages.length > 1} />
   </div>

@@ -1,0 +1,33 @@
+---
+import { t, type Lang } from '../i18n/ui';
+import Layout from '../layouts/Layout.astro';
+import PageShell from '../components/PageShell.astro';
+
+/**
+ * What a visitor sees when a page fails on the server, instead of a blank 500.
+ * Nearly always that is the CMS: Ghost down or restarting before the server
+ * has read the projects once. That is a passing outage, not a broken page, so
+ * it is answered as one — 503 with Retry-After, which a search engine takes
+ * as "come back later" rather than a reason to drop the page.
+ */
+interface Props {
+  error?: unknown;
+}
+const { error } = Astro.props;
+
+const cmsDown = error instanceof Error && error.message.startsWith('[cms]');
+if (cmsDown) {
+  Astro.response.status = 503;
+  Astro.response.headers.set('Retry-After', '60');
+}
+
+// The language of the page that failed: everything under /hu is Hungarian.
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const lang: Lang = /^\/hu(\/|$)/.test(Astro.url.pathname.slice(base.length)) ? 'hu' : 'en';
+const tr = t(lang);
+---
+<Layout title={`${tr('error.title')} | Porkoláb Martin`} lang={lang} description={tr('error.body')} noindex>
+  <PageShell lang={lang} title={tr('error.title')} eyebrow={tr('error.eyebrow')}>
+    <p class="max-w-2xl text-lg sm:text-2xl font-semibold leading-snug">{tr('error.body')}</p>
+  </PageShell>
+</Layout>

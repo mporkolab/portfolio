@@ -1,14 +1,16 @@
 ---
 // Shows no project, so it is built once rather than on each request.
 export const prerender = true;
+import { t } from '../i18n/ui';
 import Layout from '../layouts/Layout.astro';
 import AccessCard from '../components/plate/AccessCard.astro';
 
 import { cameraTurn } from '../lib/transitions';
 
 const lang = 'en' as const;
+const tr = t(lang);
 ---
-<Layout title="Porkoláb Martin | Profile" lang={lang}>
+<Layout title="Porkoláb Martin | Profile" lang={lang} description={tr('meta.about')} pageType="ProfilePage">
   <div transition:name="scene" transition:animate={cameraTurn}>
     <AccessCard lang={lang} />
   </div>

@@ -88,6 +88,15 @@ export function assetUrl(thumbnail: string, width: 352 | 640 | 720 | 1280): stri
   return `${base}/content/images/size/w${GHOST_SIZES[width]}/format/webp/${thumbnail}`;
 }
 
+/**
+ * The thumbnail for a link preview: left in its uploaded format, since not
+ * every scraper reads WebP, at a width Ghost already makes.
+ */
+export function shareImageUrl(thumbnail: string): string {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+  return `${base}/content/images/size/w1000/${thumbnail}`;
+}
+
 /** Ghost writes absolute URLs with its public address; only the path matters. */
 const imagePath = (src: string) => new URL(src).pathname.replace(/^.*?\/content\/images\//, '');
 

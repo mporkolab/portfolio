@@ -4,16 +4,43 @@ import { getImage } from 'astro:assets';
 import plateHome from '../assets/bigger-bg.jpeg';
 import plateWall from '../assets/plate-wall.jpeg';
 import plateAbout from '../assets/plate-about.jpeg';
+import { Font } from 'astro:assets';
 import '../styles/global.css';
-import type { Lang } from '../i18n/ui';
+import { languages, defaultLang, t, type Lang } from '../i18n/ui';
+import { absolute, alternates, ogLocale, person, website, webPage, jsonLd } from '../lib/seo';
 
 interface Props {
   title: string;
   lang: Lang;
   description?: string;
+  /**
+   * The page's one <h1>, read by search engines and screen readers only — for
+   * the photographed rooms, whose visible type is all signage.
+   */
+  heading?: string;
+  /** The picture a shared link shows; the concourse when left out. Absolute. */
+  image?: { src: string; alt: string; width?: number; height?: number };
+  /** 'article' for a case study; a plain page otherwise. */
+  ogType?: 'website' | 'article';
+  /** The schema.org type of the page itself, e.g. ProfilePage. */
+  pageType?: string;
+  /** More JSON-LD nodes for this page: a project, its breadcrumbs. */
+  schema?: object[];
+  /** Kept out of search results: an error page is no page of the site. */
+  noindex?: boolean;
 }
 
-const { title, lang, description = 'Porkoláb Martin — portfolio' } = Astro.props;
+const {
+  title,
+  lang,
+  description = t(lang)('meta.home'),
+  heading,
+  image,
+  ogType = 'website',
+  pageType,
+  schema = [],
+  noindex = false,
+} = Astro.props;
 
 // The turn between two photographed rooms only works if the room you are turning
 // towards is already decoded. Warmed after load, and only where plates are used.
@@ -26,6 +53,29 @@ const plateUrls = plates.map((image) => image.src);
 
 // '' by default, or '/<prefix>' when the site is served from a sub-path.
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+// One address per page, and the same page in the other language beside it.
+const canonical = absolute(Astro.url.pathname);
+const alternate = alternates(Astro.url.pathname);
+
+// Link previews (Open Graph) want a plain JPEG at a fixed address: public/og.jpg
+// is the concourse at 1200×630, public/portrait.jpg the photo on the profile.
+// On a page rendered on request getImage() gives a /_image URL instead, which
+// a scraper may not be able to follow.
+const share = image ?? {
+  src: absolute(`${base}/og.jpg`),
+  alt: title,
+  width: 1200,
+  height: 630,
+};
+const faceUrl = absolute(`${base}/portrait.jpg`);
+
+const graph = [
+  website(lang),
+  person(lang, faceUrl),
+  webPage({ url: canonical, title, description, lang, type: pageType, image: share.src }),
+  ...schema,
+];
 ---
 
 <!doctype html>
@@ -38,8 +88,39 @@ FORM: Terminal Wayfinding (challenger-wayfinding), recoloured deep blue via --si
 <html lang={lang}>
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content="Porkoláb Martin" />
+    <meta
+      name="robots"
+      content={noindex ? 'noindex' : 'index, follow, max-image-preview:large, max-snippet:-1'}
+    />
+    <meta name="theme-color" content="#0d1117" />
+
+    <link rel="canonical" href={canonical} />
+    {languages.map((l) => <link rel="alternate" hreflang={l} href={alternate[l]} />)}
+    <link rel="alternate" hreflang="x-default" href={alternate[defaultLang]} />
+    <link rel="sitemap" type="application/xml" href={`${base}/sitemap.xml`} />
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="Porkoláb Martin" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={ogLocale[lang]} />
+    {languages.filter((l) => l !== lang).map((l) => <meta property="og:locale:alternate" content={ogLocale[l]} />)}
+    <meta property="og:image" content={share.src} />
+    {share.width && <meta property="og:image:width" content={String(share.width)} />}
+    {share.height && <meta property="og:image:height" content={String(share.height)} />}
+    <meta property="og:image:alt" content={share.alt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={share.src} />
+    <meta name="twitter:image:alt" content={share.alt} />
+
+    <script type="application/ld+json" set:html={jsonLd(graph)} />
     {/* The portfolio mark, on the terminal's own dark ground so it reads the
         same in a light and a dark browser chrome. */}
     <link rel="icon" href={`${base}/favicon.ico`} sizes="32x32" />
@@ -50,14 +131,7 @@ FORM: Terminal Wayfinding (challenger-wayfinding), recoloured deep blue via --si
     <link rel="apple-touch-icon" href={`${base}/apple-touch-icon.png`} />
     <meta name="generator" content={Astro.generator} />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap"
-      rel="stylesheet"
-    />
-
-    <title>{title}</title>
+    <Font cssVariable="--font-inter" preload={[{ weight: 900, subset: 'latin' }]} />
 
     <ClientRouter />
 
@@ -98,6 +172,8 @@ FORM: Terminal Wayfinding (challenger-wayfinding), recoloured deep blue via --si
         <feGaussianBlur stdDeviation="44 0" />
       </filter>
     </svg>
+
+    {heading && <h1 class="sr-only">{heading}</h1>}
 
     <slot />
 

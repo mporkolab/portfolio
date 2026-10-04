@@ -37,10 +37,26 @@ export const ui = {
   en: {
     'site.name': 'P. Martin',
     'site.tag': 'Portfolio',
+
+    // What a search result or a shared link says about each page.
+    'meta.role': 'Computer science student',
+    'meta.home':
+      'Porkoláb Martin, a computer science student at the Faculty of Informatics of ELTE in Budapest. Websites designed and built end to end, from concept to deploy.',
+    'meta.homeHeading': 'Porkoláb Martin — computer science student, portfolio',
+    'meta.about':
+      'Who Porkoláb Martin is: a student at the Faculty of Informatics of Eötvös Loránd University (ELTE) in Budapest, and a qualified software developer and tester.',
+    'meta.projects':
+      'Projects by Porkoláb Martin: client work and personal products, each designed and built end to end, with a case study for every one.',
+    'meta.contact':
+      'Get in touch with Porkoláb Martin about a job or a freelance web project. Send a message, or connect on GitHub and LinkedIn.',
     'nav.back': 'Back to terminal',
     'nav.backShort': 'Terminal',
     'nav.backProjects': 'All projects',
     'nav.project': 'Project',
+    // The page shown when something breaks on the server, usually the CMS.
+    'error.title': 'Out of service',
+    'error.eyebrow': 'Temporary disruption',
+    'error.body': 'This page cannot be shown right now. Please try again in a minute.',
     'wall.prev': 'Previous projects',
     'wall.next': 'More projects',
 
@@ -98,10 +114,24 @@ export const ui = {
   hu: {
     'site.name': 'P. Martin',
     'site.tag': 'Portfólió',
+
+    'meta.role': 'Programtervező informatikus',
+    'meta.home':
+      'Porkoláb Martin budapesti programtervező informatikus hallgató az ELTE Informatikai Karán. Weboldalak az ötlettől a tervezésen át az élesítésig, egy kézben.',
+    'meta.homeHeading': 'Porkoláb Martin — programtervező informatikus portfóliója',
+    'meta.about':
+      'Porkoláb Martin bemutatkozása: az ELTE Informatikai Karának hallgatója Budapesten, szoftverfejlesztő- és tesztelő technikus.',
+    'meta.projects':
+      'Porkoláb Martin projektjei: ügyfélmunkák és saját termékek, mindegyik az elejétől a végéig egy kézben, mindegyikhez esettanulmánnyal.',
+    'meta.contact':
+      'Írj Porkoláb Martinnak állásajánlattal vagy szabadúszó webes projekttel kapcsolatban — üzenetben, GitHubon vagy LinkedInen.',
     'nav.back': 'Vissza a terminálra',
     'nav.backShort': 'Terminál',
     'nav.backProjects': 'Összes projekt',
     'nav.project': 'Projekt',
+    'error.title': 'Üzemszünet',
+    'error.eyebrow': 'Átmeneti zavar',
+    'error.body': 'Ez az oldal most nem jeleníthető meg. Kérlek, próbáld újra egy perc múlva.',
     'wall.prev': 'Előző projektek',
     'wall.next': 'További projektek',
 

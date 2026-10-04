@@ -62,10 +62,11 @@ const story = tr('about.body').split('\n');
       </div>
 
       <div class="card__details">
-        <p class="field">
+        <!-- The holder's name is the page's heading: the one thing the card is about. -->
+        <div class="field">
           <span class="field__label">{tr('card.holder')}</span>
-          <span class="field__name">Porkoláb Martin</span>
-        </p>
+          <h1 class="field__name">Porkoláb Martin</h1>
+        </div>
 
         <p class="field">
           <span class="field__label">{tr('card.roleLabel')}</span>

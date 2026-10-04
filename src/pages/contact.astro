@@ -1,11 +1,13 @@
 ---
 // Shows no project, so it is built once rather than on each request.
 export const prerender = true;
+import { t } from '../i18n/ui';
 import Layout from '../layouts/Layout.astro';
 import ContactPage from '../components/pages/ContactPage.astro';
 
 const lang = 'en' as const;
+const tr = t(lang);
 ---
-<Layout title="Porkoláb Martin | Contact" lang={lang}>
+<Layout title="Porkoláb Martin | Contact" lang={lang} description={tr('meta.contact')} pageType="ContactPage">
   <ContactPage lang={lang} />
 </Layout>

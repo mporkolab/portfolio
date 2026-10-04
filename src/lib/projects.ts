@@ -3,7 +3,7 @@
  * `cms.ts`); this module only shapes them for the wall's geometry.
  */
 
-export { getProjects, copyFor, assetUrl } from './cms';
+export { getProjects, copyFor, assetUrl, shareImageUrl } from './cms';
 export type { Project, ProjectCopy } from './cms';
 
 import { getProjects } from './cms';

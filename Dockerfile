@@ -9,6 +9,10 @@ RUN npm ci
 # (/ nélkül). Üresen a domain gyökerére épül.
 ARG BASE_PATH=""
 
+# A nyilvános cím (séma + domain, / nélkül): a canonical linkek, az Open Graph
+# és a sitemap ebből épülnek. Üresen https://martinporkolab.hu.
+ARG SITE_URL=""
+
 # A kapcsolati űrlap beállításai build-időben égnek az oldalba.
 ARG PUBLIC_CONTACT_EMAIL=""
 ARG PUBLIC_CONTACT_ENDPOINT=""
@@ -21,7 +25,7 @@ ENV PUBLIC_CONTACT_EMAIL=$PUBLIC_CONTACT_EMAIL \
 # A build nem kéri le a Ghostot: a projekteket a futó szerver olvassa,
 # kérésenként. A Ghost címe és kulcsa ezért futásidejű környezeti változó.
 COPY . .
-RUN BASE_PATH="$BASE_PATH" npm run build && npm prune --omit=dev
+RUN BASE_PATH="$BASE_PATH" SITE_URL="$SITE_URL" npm run build && npm prune --omit=dev
 
 # ---- runtime ----
 FROM node:22-alpine AS runtime

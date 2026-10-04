@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig, envField } from 'astro/config';
+import { defineConfig, envField, fontProviders } from 'astro/config';
 
 import tailwindcss from '@tailwindcss/vite';
 import node from '@astrojs/node';
@@ -10,6 +10,10 @@ const basePath = process.env.BASE_PATH?.replace(/^\/|\/$/g, '');
 
 // https://astro.build/config
 export default defineConfig({
+  // The public address, for what has to be absolute: canonical and hreflang
+  // links, Open Graph, the sitemap. Behind the proxy the request's own host is
+  // the container's, so it cannot be read off the request.
+  site: process.env.SITE_URL || 'https://martinporkolab.hu',
   base: basePath ? `/${basePath}` : '/',
   // The projects are read from Ghost on each request, so a post published there
   // is on the site at once — no rebuild. Pages that show no project are still
@@ -29,6 +33,21 @@ export default defineConfig({
     prefetchAll: true,
     defaultStrategy: 'viewport',
   },
+  // Inter is downloaded at build time and served from the site itself: no
+  // request to Google from the visitor's browser (nothing for GDPR to object
+  // to), and no render-blocking stylesheet from another origin. latin-ext
+  // carries ő and ű.
+  fonts: [
+    {
+      provider: fontProviders.fontsource(),
+      name: 'Inter',
+      cssVariable: '--font-inter',
+      weights: [400, 600, 700, 900],
+      styles: ['normal'],
+      subsets: ['latin', 'latin-ext'],
+      fallbacks: ['system-ui', 'sans-serif'],
+    },
+  ],
   vite: {
     plugins: [tailwindcss()],
   },

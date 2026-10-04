@@ -1,4 +1,5 @@
 ---
+import { t } from '../../i18n/ui';
 import Layout from '../../layouts/Layout.astro';
 import Board from '../../components/Board.astro';
 import HomePlate from '../../components/plate/HomePlate.astro';
@@ -7,8 +8,9 @@ import HomePlate from '../../components/plate/HomePlate.astro';
 import { cameraTurn } from '../../lib/transitions';
 
 const lang = 'hu' as const;
+const tr = t(lang);
 ---
-<Layout title="Porkoláb Martin | Portfólió" lang={lang}>
+<Layout title="Porkoláb Martin | Portfólió" lang={lang} description={tr('meta.home')} heading={tr('meta.homeHeading')}>
   <!-- A photographed terminal cannot reflow, so narrow viewports get the
        stacked board instead and never fetch the plate. -->
   <div class="wide-only" transition:name="scene" transition:animate={cameraTurn}>
