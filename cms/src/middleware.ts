@@ -18,21 +18,28 @@ import { env } from './lib/env';
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
 
-/** A `CMS_URL`-ben felsorolt címek hosztjai (vesszővel több is megadható). */
-const allowedHosts = new Set(
-  (env('CMS_URL') ?? '')
-    .split(',')
-    .map((u) => u.trim())
-    .filter(Boolean)
-    .flatMap((u) => {
-      try {
-        return [new URL(u).hostname];
-      } catch {
-        console.warn(`[cms] a CMS_URL egyik címe nem érvényes URL: ${u}`);
-        return [];
-      }
-    }),
-);
+/** A `CMS_URL`-ben felsorolt címek (vesszővel több is megadható). */
+const cmsUrls = (env('CMS_URL') ?? '')
+  .split(',')
+  .map((u) => u.trim())
+  .filter(Boolean)
+  .flatMap((u) => {
+    try {
+      return [new URL(u)];
+    } catch {
+      console.warn(`[cms] a CMS_URL egyik címe nem érvényes URL: ${u}`);
+      return [];
+    }
+  });
+
+const allowedHosts = new Set(cmsUrls.map((u) => u.hostname));
+
+/**
+ * A `CMS_URL` címei teljes eredetként (séma, hoszt, port). Ahonnan a CMS-t
+ * nyitod, onnan jöhet írás akkor is, ha a proxy a portot nem adja tovább
+ * (a Cosmos pl. csak `100.71.44.91`-et küld, a böngésző `…:7204`-et).
+ */
+const allowedOrigins = new Set(cmsUrls.map((u) => u.origin));
 
 const withHeaders = (original: Response) => {
   // Új Response, mert egyes válaszok (pl. Response.redirect) fejlécei nem módosíthatók.
@@ -86,16 +93,19 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   if (!['GET', 'HEAD', 'OPTIONS'].includes(context.request.method)) {
-    // Csak a hoszt (és port) számít: TLS-t végző proxy mögött a böngésző
-    // https-t küld, a szerver pedig http-t lát.
+    // Vagy a kérés címe (hoszt és port; a séma nem, mert TLS-t végző proxy
+    // mögött a böngésző https-t küld, a szerver pedig http-t lát), vagy
+    // pontosan egy CMS_URL-ben megadott eredet.
     const origin = context.request.headers.get('origin');
-    let originHost: string | null = null;
+    let parsed: URL | null = null;
     try {
-      originHost = origin ? new URL(origin).host : null;
+      parsed = origin ? new URL(origin) : null;
     } catch {
-      originHost = null;
+      parsed = null;
     }
-    if (originHost !== host) return refuse(403, 'Érvénytelen eredet.');
+    if (!parsed || (parsed.host !== host && !allowedOrigins.has(parsed.origin))) {
+      return refuse(403, 'Érvénytelen eredet.');
+    }
   }
 
   return withHeaders(await next());
