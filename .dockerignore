@@ -13,3 +13,5 @@ npm-debug.log*
 Dockerfile
 .dockerignore
 docker-compose.yml
+# A CMS saját image-ből épül, az adatai (és a régi Ghost-adatok) nem kellenek ide.
+cms

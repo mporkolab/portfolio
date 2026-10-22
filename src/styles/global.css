@@ -295,3 +295,67 @@
     animation: none;
   }
 }
+
+/* The case study, as the CMS's editor writes it (cms/src/lib/editor): H2/H3,
+   lists, quotes, tables, rules, images in a <figure>, and paragraph indents as
+   data-indent. Tailwind's reset takes all of that back to plain text, so it is
+   given the board's type here — bold uppercase headings, a heavy ink rule. */
+.story h2 {
+  margin-top: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  color: var(--panel-ink);
+}
+.story h3 {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--panel-ink);
+}
+@media (min-width: 640px) {
+  .story h2 { font-size: 2rem; }
+  .story h3 { font-size: 1rem; }
+}
+.story ul,
+.story ol {
+  padding-left: 1.5em;
+}
+.story ul { list-style: square; }
+.story ol { list-style: decimal; }
+.story li + li { margin-top: 0.35em; }
+.story li > p { margin: 0; }
+.story blockquote {
+  border-left: 4px solid var(--panel-ink);
+  padding-left: 1em;
+  font-weight: 600;
+}
+.story hr {
+  border: 0;
+  border-top: 2px solid var(--panel-ink);
+}
+.story figure.post-image-full img { width: 100%; }
+.story figure.post-image-text img { margin-inline: auto; }
+.story .tableWrapper,
+.story table {
+  display: block;
+  overflow-x: auto;
+}
+.story th,
+.story td {
+  border: 1px solid color-mix(in srgb, var(--panel-ink) 25%, transparent);
+  padding: 0.4em 0.6em;
+  text-align: left;
+  vertical-align: top;
+}
+.story th { font-weight: 700; }
+.story th > p,
+.story td > p { margin: 0; }
+.story [data-indent="1"] { margin-left: 2em; }
+.story [data-indent="2"] { margin-left: 4em; }
+.story [data-indent="3"] { margin-left: 6em; }
+.story [data-indent="4"] { margin-left: 8em; }

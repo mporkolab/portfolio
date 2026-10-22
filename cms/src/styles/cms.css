@@ -1,0 +1,150 @@
+/* A CMS stíluslapja. A portfólió global.css-étől független (a tábla, a
+   perspektíva, az animációk itt nem kellenek), csak a betűtípust és a tábla
+   kékjét veszi át – sötét felületen világosabb árnyalatban, hogy olvasható
+   maradjon. */
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+  --color-accent: #7db7ea;
+  --color-accent-dark: #5c9fd9;
+  --color-admin-bg: #0d1117;
+  --color-admin-panel: #151a22;
+  --color-admin-raised: #1e2530;
+  --color-admin-border: rgba(255, 255, 255, 0.12);
+  --color-admin-text: #e6e8ec;
+  --color-admin-muted: #9aa3b0;
+  --color-admin-danger: #f07167;
+}
+
+html {
+  background: var(--color-admin-bg);
+  color: var(--color-admin-text);
+  font-family: var(--font-sans);
+  color-scheme: dark;
+}
+
+/* Közös űrlapelemek – minden admin oldalon egyformák. */
+@layer components {
+  .admin-label {
+    @apply mb-1.5 block text-sm font-medium text-admin-text;
+  }
+  .admin-input {
+    @apply block w-full rounded-lg border border-admin-border bg-admin-bg px-3 py-2.5 text-admin-text placeholder:text-admin-muted/70 focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none disabled:opacity-60;
+  }
+  .admin-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 font-semibold text-admin-bg transition hover:bg-accent-dark focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .admin-btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-admin-border px-3 py-2 text-sm text-admin-text transition hover:bg-admin-raised focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none;
+  }
+  .admin-btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-admin-danger/40 px-3 py-2 text-sm text-admin-danger transition hover:bg-admin-danger/10;
+  }
+  .admin-card {
+    @apply rounded-xl border border-admin-border bg-admin-panel;
+  }
+  .admin-alert-error {
+    @apply rounded-lg border border-admin-danger/40 bg-admin-danger/10 px-4 py-3 text-sm text-admin-danger;
+  }
+  .admin-alert-ok {
+    @apply rounded-lg border border-accent/40 bg-accent/10 px-4 py-3 text-sm text-accent;
+  }
+}
+
+/* A szerkesztő szövege. */
+.admin-prose {
+  --tw-prose-invert-body: var(--color-admin-text);
+  --tw-prose-invert-headings: #ffffff;
+  --tw-prose-invert-links: var(--color-accent);
+  --tw-prose-invert-bullets: var(--color-accent);
+  --tw-prose-invert-quote-borders: var(--color-accent);
+}
+.admin-prose a {
+  cursor: text;
+}
+.admin-prose > :first-child {
+  margin-top: 0;
+}
+/* Helykitöltő szöveg az üres bekezdésben / címsorban (TipTap Placeholder). */
+.admin-prose .is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: color-mix(in srgb, var(--color-admin-muted) 60%, transparent);
+}
+.admin-prose .ProseMirror-selectednode {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Képek a szerkesztőben. */
+.admin-prose figure.post-image {
+  margin-block: 1.75em;
+}
+.admin-prose figure.post-image img {
+  margin: 0 auto;
+  border-radius: 0.75rem;
+  height: auto;
+  cursor: pointer;
+}
+/* Szövegszélesség: legfeljebb a saját méretére nő (kis képet nem nyújt). */
+.admin-prose figure.post-image-text img {
+  width: auto;
+  max-width: min(100%, 48rem);
+}
+.admin-prose figure.post-image-full img {
+  width: 100%;
+}
+.admin-prose figure.post-image figcaption {
+  text-align: center;
+}
+/* Feltöltés közben: halvány, pulzáló helykitöltő. */
+.admin-prose img[data-uploading] {
+  opacity: 0.45;
+  animation: admin-upload-pulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes admin-upload-pulse {
+  to { opacity: 0.75; }
+}
+.admin-prose .ProseMirror-selectednode img,
+.admin-prose figure.ProseMirror-selectednode {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 0.75rem;
+}
+
+/* Behúzás (lásd src/lib/editor/indent.ts) – ugyanaz, mint a portfólión. */
+.admin-prose [data-indent="1"] { margin-left: 2em; }
+.admin-prose [data-indent="2"] { margin-left: 4em; }
+.admin-prose [data-indent="3"] { margin-left: 6em; }
+.admin-prose [data-indent="4"] { margin-left: 8em; }
+
+/* Táblázat a szerkesztőben: látható cellahatárok és kijelölt cellák. */
+.admin-prose .tableWrapper {
+  overflow-x: auto;
+}
+.admin-prose table {
+  table-layout: fixed;
+  width: 100%;
+}
+.admin-prose th,
+.admin-prose td {
+  position: relative;
+  border: 1px solid var(--color-admin-border);
+  padding: 0.4em 0.6em;
+  vertical-align: top;
+}
+.admin-prose th > p,
+.admin-prose td > p {
+  margin: 0;
+}
+.admin-prose .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+}

@@ -1,60 +1,63 @@
 /**
- * The projects come from Ghost, not from this repo. Adding a project is
- * publishing a post in the Ghost admin, not a commit.
+ * The projects come from the CMS (cms/), not from this repo. Adding a project
+ * is publishing it in the CMS, not a commit.
  *
- * The pages that show projects are rendered on request, so a post published
- * in Ghost is on the site at once — nothing to rebuild. The list is kept for a
- * few seconds, so a burst of visitors is one API call; and if Ghost stops
- * answering, the last list it gave keeps being served rather than an error.
+ * The CMS writes an SQLite database and a folder of images; this server reads
+ * the same two, read-only — the database file on each request, so a project
+ * published there is on the site at once, with nothing to rebuild. In Docker
+ * both containers mount the `cms-data` volume; in dev both default to
+ * cms/data. The CMS itself is VPN-only and never talked to over the network:
+ * a visitor's browser only ever sees this server.
  *
- * How a post maps onto a project (cms/README.md has the same, for the editor):
+ * What the CMS calls what (cms/src/lib/db/schema.ts has the columns, and
+ * cms/README.md the same for the editor):
  *
- *   title           → title
- *   feature image   → thumbnail; the internal tag #logo shows it whole
- *   excerpt         → blurb
- *   content         → the case study; a callout card in it is the note
- *   first tag       → role, e.g. "Client project"
- *   further tags    → stack
- *   canonical URL   → the live site; a project with one is "live"
- *   featured (★)    → first on the wall, and the one the home page shows
+ *   title, role, blurb   → per language, as typed
+ *   case study           → per language, HTML rendered and sanitised by the
+ *                          CMS when it saved
+ *   note                 → per language, plain text under the story
+ *   cover image          → thumbnail; "the image is a logo" shows it whole
+ *   live site            → a project with one is "live"
+ *   stack                → comma-separated, shown as "A · B"
+ *   featured (★), date   → the order: featured first, then the newest
  *
- * Every project is written twice: a post tagged #en and one tagged #hu, both
- * internal tags. The two are paired by slug with any `-en`/`-hu` suffix taken
- * off (edortech-en + edortech-hu, or edortech + edortech-hu), and that is the
- * project's address. Each supplies its own text (title, role, excerpt,
- * content); the rest — image, stack, link, #logo, ★ — comes from the #en post,
- * or from the #hu one where the #en post leaves it out. A project with only
- * one of the two shows that one in both languages. A post with neither tag is
- * not a project, and is left off the site.
+ * A language whose title is empty is not written yet; the project then shows
+ * the other one in both languages.
  */
 
-import { GHOST_URL, GHOST_CONTENT_KEY as KEY } from 'astro:env/server';
+import { DatabaseSync } from 'node:sqlite';
+import { createHmac, timingSafeEqual } from 'node:crypto';
+import path from 'node:path';
+import { CMS_DATABASE, PREVIEW_SECRET } from 'astro:env/server';
 import type { Lang } from '../i18n/ui';
-
-/**
- * Where this server reads the API from. Only the server ever calls it — the
- * images go through /content/images on the site itself — so it may be an
- * address that only makes sense here, like the compose service name.
- */
-export const API_URL = GHOST_URL.replace(/\/$/, '');
 
 /** The copy for one project in one language, as the templates want it. */
 export interface ProjectCopy {
   title: string;
   role: string;
   blurb: string;
-  /** The case study, as the HTML Ghost renders it, without the note. */
+  /** The case study, as HTML. */
   story: string;
-  /** A caveat printed under the story, e.g. "no accuracy figures yet". */
+  /** A caveat printed under the story, e.g. "no accuracy figures yet" (HTML-escaped). */
   note: string | null;
+}
+
+/** A cover image as stored by the CMS: WebP widths up to `width`, plus one share image. */
+export interface Thumbnail {
+  /** Under /uploads/, without width and extension, e.g. `2026/10/<uuid>`. */
+  path: string;
+  /** The largest stored width. */
+  width: number;
+  /** The format of the link-preview copy. */
+  share: 'jpg' | 'png';
 }
 
 export interface Project {
   slug: string;
   title: string;
   status: 'live' | 'dev';
-  /** The feature image's path under /content/images/, or null while none is set. */
-  thumbnail: string | null;
+  /** The cover image, or null while none is set. */
+  thumbnail: Thumbnail | null;
   /**
    * The thumbnail is a logo rather than a screenshot: shown whole on the dark
    * housing instead of cropped to fill. A mark drawn to glow loses its shape
@@ -71,171 +74,160 @@ export function copyFor(p: Project, lang: Lang): ProjectCopy {
   return (lang === 'hu' ? p.copy.hu ?? p.copy.en : p.copy.en ?? p.copy.hu)!;
 }
 
-/**
- * The frame width asked for → the nearest size Ghost makes itself. Ghost only
- * resizes to the sizes its active theme declares (600/1000/2000 for the
- * default theme), and keeps each resized copy on disk.
- */
-const GHOST_SIZES: Record<number, number> = { 352: 600, 640: 1000, 720: 1000, 1280: 2000 };
+const base = () => import.meta.env.BASE_URL.replace(/\/$/, '');
 
 /**
- * A thumbnail, as WebP, at about the width the frame draws it. It is a path on
- * the site itself, proxied to Ghost (src/pages/content/images), so a visitor's
- * browser never talks to the CMS and the CMS need not be public.
+ * The widths the CMS stores, each image up to its own size (it never
+ * enlarges). The same list as WIDTHS in cms/src/lib/images.ts.
  */
-export function assetUrl(thumbnail: string, width: 352 | 640 | 720 | 1280): string {
-  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-  return `${base}/content/images/size/w${GHOST_SIZES[width]}/format/webp/${thumbnail}`;
+const CMS_WIDTHS = [600, 1000, 2000];
+
+/** The frame width asked for → the stored width that covers it. */
+const FRAME_SIZES: Record<number, number> = { 352: 600, 640: 1000, 720: 1000, 1280: 2000 };
+
+/**
+ * A thumbnail, as WebP, at about the width the frame draws it. A path on the
+ * site itself (src/pages/uploads), so the CMS need not be public.
+ */
+export function assetUrl(thumb: Thumbnail, width: 352 | 640 | 720 | 1280): string {
+  const stored = [...CMS_WIDTHS.filter((w) => w < thumb.width), thumb.width];
+  const w = stored.find((s) => s >= FRAME_SIZES[width]) ?? thumb.width;
+  return `${base()}/uploads/${thumb.path}-${w}.webp`;
+}
+
+/** The thumbnail for a link preview: JPEG or PNG, since not every scraper reads WebP. */
+export function shareImageUrl(thumb: Thumbnail): string {
+  return `${base()}/uploads/${thumb.path}-share.${thumb.share}`;
 }
 
 /**
- * The thumbnail for a link preview: left in its uploaded format, since not
- * every scraper reads WebP, at a width Ghost already makes.
+ * Images in the story carry the CMS's root-relative /uploads/ address, which
+ * is right here too — unless the site sits under a sub-path, which they are
+ * moved under, srcset entries included.
  */
-export function shareImageUrl(thumbnail: string): string {
-  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-  return `${base}/content/images/size/w1000/${thumbnail}`;
-}
+const localImages = (html: string) => (base() ? html.replace(/(?<=["\s,])\/uploads\//g, `${base()}/uploads/`) : html);
 
-/** Ghost writes absolute URLs with its public address; only the path matters. */
-const imagePath = (src: string) => new URL(src).pathname.replace(/^.*?\/content\/images\//, '');
+const escapeHtml = (s: string) =>
+  s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
-/**
- * Images put in the post body carry the same address, which a visitor cannot
- * reach (the CMS is VPN-only) — so they are pointed at the site's own
- * /content/images proxy too, srcset sizes included.
- */
-const GHOST_IMAGE = /\bhttps?:\/\/[^\s"',)]+?\/content\/images\//g;
-const localImages = (html: string) =>
-  html.replace(GHOST_IMAGE, `${import.meta.env.BASE_URL.replace(/\/$/, '')}/content/images/`);
-
-/** What the Content API returns for a post, as far as this site reads it. */
-interface GhostPost {
+/** The rows this site reads, as far as it reads them. */
+interface ProjectRow {
+  id: number;
   slug: string;
+  live_url: string | null;
+  stack: string;
+  cover_is_logo: number;
+  image_path: string | null;
+  image_width: number | null;
+  image_share: 'jpg' | 'png' | null;
+}
+
+interface CopyRow {
+  project_id: number;
+  lang: Lang;
   title: string;
-  html: string | null;
-  custom_excerpt: string | null;
-  feature_image: string | null;
-  canonical_url: string | null;
-  tags: { name: string; slug: string; visibility: 'public' | 'internal' }[];
+  role: string;
+  blurb: string;
+  content_html: string;
+  note: string;
 }
 
-const CALLOUT =
-  /<div class="kg-card kg-callout-card[^"]*">(?:<div class="kg-callout-emoji">[\s\S]*?<\/div>)?<div class="kg-callout-text">([\s\S]*?)<\/div><\/div>/g;
+const PROJECT_COLUMNS = `
+  p.id, p.slug, p.live_url, p.stack, p.cover_is_logo,
+  i.path AS image_path, i.width AS image_width, i.share_ext AS image_share
+  FROM projects p LEFT JOIN images i ON i.id = p.cover_image_id`;
 
-function copyOf(post: GhostPost): ProjectCopy {
-  const html = localImages(post.html ?? '');
-  const notes = [...html.matchAll(CALLOUT)].map((m) => m[1]);
-  return {
-    title: post.title,
-    role: shownTags(post)[0] ?? '',
-    blurb: post.custom_excerpt ?? '',
-    story: html.replace(CALLOUT, '').trim(),
-    note: notes.length ? notes.join(' ') : null,
-  };
-}
-
-const hasTag = (post: GhostPost, slug: string) => post.tags.some((t) => t.slug === slug);
+let db: DatabaseSync | null = null;
 
 /**
- * The tags that are switches rather than text: the language, and the logo
- * flag. Each is taken as `#en` or as plain `en` — the `#` is easy to leave off
- * in the editor — and either way it is never role or stack.
+ * The CMS's database, opened once and read-only. Every query is its own read
+ * transaction, so what the CMS commits is seen by the next request.
  */
-const SWITCH_TAG_SLUGS = new Set(['en', 'hu', 'logo', 'hash-en', 'hash-hu', 'hash-logo']);
-const langOf = (post: GhostPost): Lang | null =>
-  hasTag(post, 'hash-en') || hasTag(post, 'en') ? 'en' : hasTag(post, 'hash-hu') || hasTag(post, 'hu') ? 'hu' : null;
-
-/** The public tags that mean something on the site: role first, then stack. */
-const shownTags = (post: GhostPost) =>
-  post.tags.filter((t) => t.visibility === 'public' && !SWITCH_TAG_SLUGS.has(t.slug)).map((t) => t.name);
-
-async function load(): Promise<Project[]> {
-  let posts: GhostPost[];
+function query<T>(sql: string, ...params: (string | number)[]): T[] {
+  const file = path.resolve(CMS_DATABASE);
   try {
-    if (!KEY) throw new Error('GHOST_CONTENT_KEY is not set');
-    const url =
-      `${API_URL}/ghost/api/content/posts/?key=${KEY}&limit=all&include=tags` +
-      `&fields=slug,title,html,custom_excerpt,feature_image,canonical_url` +
-      `&order=${encodeURIComponent('featured desc,published_at desc')}`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
-    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-    ({ posts } = (await res.json()) as { posts: GhostPost[] });
-    if (!Array.isArray(posts)) throw new Error('unexpected payload shape');
+    db ??= new DatabaseSync(file, { readOnly: true });
+    return db.prepare(sql).all(...params) as T[];
   } catch (err) {
+    // Opened again on the next request: the CMS may only now have created it.
+    db?.close();
+    db = null;
     const why = err instanceof Error ? err.message : String(err);
     throw new Error(
-      `[cms] could not read the projects from ${API_URL} (${why}).\n` +
-        `      Set GHOST_URL and GHOST_CONTENT_KEY (Ghost admin → Settings → ` +
-        `Integrations), and check the CMS is up.`,
+      `[cms] could not read the projects from ${file} (${why}).\n` +
+        `      Set CMS_DATABASE, and check the CMS has started once (it creates the database).`,
     );
   }
+}
 
-  // Paired in the order the API gives, so the ★ and the publish date still
-  // decide where a project stands.
-  const pairs = new Map<string, { en?: GhostPost; hu?: GhostPost }>();
-  const tagged: [GhostPost, Lang][] = [];
-  for (const post of posts) {
-    const lang = langOf(post);
-    if (lang) tagged.push([post, lang]);
-    else console.warn(`[cms] "${post.slug}" has neither #en nor #hu, so it is not on the site`);
-  }
-  const base = (post: GhostPost) => post.slug.replace(/-(en|hu)$/, '');
-  const slugs = new Set(tagged.map(([post]) => base(post)));
-  for (const [post, lang] of tagged) {
-    let slug = base(post);
-    // Two posts with one title get `edortech` and `edortech-2` from Ghost; the
-    // second still belongs with the first when its language is the missing one.
-    const numbered = slug.replace(/-\d+$/, '');
-    if (numbered !== slug && slugs.has(numbered) && !pairs.get(numbered)?.[lang]) slug = numbered;
-    const pair = pairs.get(slug) ?? {};
-    if (pair[lang]) console.warn(`[cms] two #${lang} posts for "${slug}"; "${post.slug}" is ignored`);
-    else pair[lang] = post;
-    pairs.set(slug, pair);
-  }
+function toProjects(rows: ProjectRow[]): Project[] {
+  if (!rows.length) return [];
+  const copies = query<CopyRow>(
+    `SELECT project_id, lang, title, role, blurb, content_html, note FROM project_copies
+     WHERE title <> '' AND project_id IN (${rows.map(() => '?').join(',')})`,
+    ...rows.map((r) => r.id),
+  );
+  const copyOf = (c: CopyRow | undefined): ProjectCopy | null =>
+    c
+      ? {
+          title: c.title,
+          role: c.role,
+          blurb: c.blurb,
+          story: localImages(c.content_html),
+          note: c.note ? escapeHtml(c.note) : null,
+        }
+      : null;
 
   const projects: Project[] = [];
-  for (const [slug, { en, hu }] of pairs) {
-    const main = (en ?? hu)!;
-    const image = en?.feature_image ?? hu?.feature_image ?? null;
-    const url = en?.canonical_url ?? hu?.canonical_url ?? null;
+  for (const r of rows) {
+    const en = copyOf(copies.find((c) => c.project_id === r.id && c.lang === 'en'));
+    const hu = copyOf(copies.find((c) => c.project_id === r.id && c.lang === 'hu'));
+    // Nothing written in either language: nothing to show.
+    if (!en && !hu) continue;
     projects.push({
-      slug,
-      title: main.title,
-      status: url ? 'live' : 'dev',
-      thumbnail: image ? imagePath(image) : null,
-      thumbnail_is_logo: [en, hu].some((p) => p && (hasTag(p, 'hash-logo') || hasTag(p, 'logo'))),
-      live_url: url,
-      stack: shownTags(main).slice(1).join(' · ') || null,
-      copy: { en: en ? copyOf(en) : null, hu: hu ? copyOf(hu) : null },
+      slug: r.slug,
+      title: (en ?? hu)!.title,
+      status: r.live_url ? 'live' : 'dev',
+      thumbnail: r.image_path ? { path: r.image_path, width: r.image_width!, share: r.image_share! } : null,
+      thumbnail_is_logo: !!r.cover_is_logo,
+      live_url: r.live_url,
+      stack:
+        r.stack
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .join(' · ') || null,
+      copy: { en, hu },
     });
   }
-
-  // An empty list is a legitimate answer — the CMS answered, nothing is
-  // published — so it is not treated as a failure.
   return projects;
 }
 
-/** How long a list is reused before Ghost is asked again. */
-const FRESH_MS = 5_000;
-
-let last: { at: number; projects: Project[] } | null = null;
-let inflight: Promise<Project[]> | null = null;
-
+/**
+ * The published projects, in the order the wall shows them. An empty list is
+ * a legitimate answer — the CMS has nothing published — not a failure.
+ */
 export async function getProjects(): Promise<Project[]> {
-  if (last && Date.now() - last.at < FRESH_MS) return last.projects;
-  // Pages rendered at the same moment share one request.
-  inflight ??= load().finally(() => (inflight = null));
-  try {
-    const projects = await inflight;
-    last = { at: Date.now(), projects };
-    return projects;
-  } catch (err) {
-    // Better the list from a minute ago than an error page.
-    if (last) {
-      console.warn(String(err));
-      return last.projects;
-    }
-    throw err;
-  }
+  return toProjects(
+    query<ProjectRow>(
+      `SELECT ${PROJECT_COLUMNS} WHERE p.status = 'published'
+       ORDER BY p.featured DESC, p.published_at DESC, p.id DESC`,
+    ),
+  );
+}
+
+/**
+ * A project as the CMS has it now, published or not, for the editor's preview
+ * link. The token is `<expiry ms>.<HMAC-SHA256(slug.expiry)>` with the secret
+ * the CMS shares (cms/src/lib/preview.ts). Null for a bad or expired token,
+ * and always when no secret is set.
+ */
+export async function getPreview(slug: string, token: string): Promise<Project | null> {
+  if (!PREVIEW_SECRET) return null;
+  const [exp, sig] = token.split('.');
+  if (!exp || !sig || !/^\d+$/.test(exp) || Number(exp) < Date.now()) return null;
+  const expected = createHmac('sha256', PREVIEW_SECRET).update(`${slug}.${exp}`).digest();
+  const given = Buffer.from(sig, 'base64url');
+  if (given.length !== expected.length || !timingSafeEqual(given, expected)) return null;
+  return toProjects(query<ProjectRow>(`SELECT ${PROJECT_COLUMNS} WHERE p.slug = ?`, slug))[0] ?? null;
 }

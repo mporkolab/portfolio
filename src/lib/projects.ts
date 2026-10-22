@@ -1,10 +1,10 @@
 /**
- * Everything shown on the wall. The projects themselves live in Ghost (see
+ * Everything shown on the wall. The projects themselves live in the CMS (see
  * `cms.ts`); this module only shapes them for the wall's geometry.
  */
 
-export { getProjects, copyFor, assetUrl, shareImageUrl } from './cms';
-export type { Project, ProjectCopy } from './cms';
+export { getProjects, getPreview, copyFor, assetUrl, shareImageUrl } from './cms';
+export type { Project, ProjectCopy, Thumbnail } from './cms';
 
 import { getProjects } from './cms';
 import type { Project } from './cms';

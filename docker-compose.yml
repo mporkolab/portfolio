@@ -1,6 +1,6 @@
 # Minden egy paranccsal indul: docker compose up -d --build
 # A CMS ugyanennek a projektnek a része, nem külön "cms" projekt: a saját
-# fájlja a cms/.env-ből olvas, a kötetei a cms/data alatt vannak.
+# fájlja a cms/.env-ből olvas, az adatai a közös cms-data volume-on vannak.
 name: portfolio
 
 include:
@@ -24,14 +24,17 @@ services:
     container_name: portfolio
     ports:
       - "${PORT:-8080}:80"
-    environment:
-      # A szerver kérésenként olvassa a projekteket, a compose hálózaton.
-      GHOST_URL: http://ghost:2368
-      # Nem kötelező az induláshoz: egy új Ghostban a kulcs csak az első indulás
-      # után hozható létre. Amíg nincs meg, a projektoldalak hibát adnak.
-      GHOST_CONTENT_KEY: "${GHOST_CONTENT_KEY:-}"
+    # A CMS adatbázisa és képei. A szerver kérésenként olvassa (csak olvasásra
+    # nyitja meg); azért nem :ro, mert az SQLite WAL módban az olvasónak is
+    # írnia kell a megosztott -shm fájlt. A helyük az image-ben van megadva.
+    volumes:
+      - cms-data:/data
+    # A PREVIEW_SECRET innen jön, ugyanaz, amivel a CMS az előnézeti linket aláírja.
+    env_file:
+      - path: cms/.env
+        required: false
     depends_on:
-      - ghost
+      - cms
     restart: unless-stopped
 
   # Fejlesztéshez: docker compose --profile dev up dev

@@ -5,8 +5,8 @@ import PageShell from '../components/PageShell.astro';
 
 /**
  * What a visitor sees when a page fails on the server, instead of a blank 500.
- * Nearly always that is the CMS: Ghost down or restarting before the server
- * has read the projects once. That is a passing outage, not a broken page, so
+ * Nearly always that is the CMS: its database not there yet (the CMS has never
+ * started) or not readable. That is a passing outage, not a broken page, so
  * it is answered as one — 503 with Retry-After, which a search engine takes
  * as "come back later" rather than a reason to drop the page.
  */

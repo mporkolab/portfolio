@@ -1,0 +1,24 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import ProjectEditor from "../../components/ProjectEditor";
+import { getEditorProject } from "../../lib/projects";
+import { previewEnabled } from "../../lib/preview";
+import { idParam } from "../../lib/api";
+
+const id = idParam(Astro.params.id);
+const project = id ? getEditorProject(id) : null;
+if (!project) Astro.response.status = 404;
+---
+
+<Layout title={project ? "Projekt szerkesztése" : "Nem található"}>
+    {
+        project ? (
+            <ProjectEditor client:only="react" initialProject={project} canPreview={previewEnabled()} />
+        ) : (
+            <div class="admin-card max-w-xl space-y-4 p-6">
+                <p>Ez a projekt nem található – lehet, hogy közben törölted.</p>
+                <a href="/" class="admin-btn-ghost">Vissza a listához</a>
+            </div>
+        )
+    }
+</Layout>

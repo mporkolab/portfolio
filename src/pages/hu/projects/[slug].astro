@@ -3,12 +3,19 @@ import { t } from '../../../i18n/ui';
 import { absolute, projectSchema } from '../../../lib/seo';
 import Layout from '../../../layouts/Layout.astro';
 import CaseStudyPage from '../../../components/pages/CaseStudyPage.astro';
-import { getProjects, copyFor, shareImageUrl } from '../../../lib/projects';
+import { getProjects, getPreview, copyFor, shareImageUrl } from '../../../lib/projects';
 
 // One case study per project in the CMS. A project published there has its
-// page at once; nothing here names a project.
-const project = (await getProjects()).find((p) => p.slug === Astro.params.slug);
+// page at once; nothing here names a project. With the CMS's signed
+// `?preview=` link the project shows as it is there, draft or not — kept out
+// of caches and search engines; a bad or expired link is a plain 404.
+const token = Astro.url.searchParams.get('preview');
+const project =
+  token !== null
+    ? await getPreview(Astro.params.slug!, token)
+    : (await getProjects()).find((p) => p.slug === Astro.params.slug);
 if (!project) return new Response(null, { status: 404 });
+if (token !== null) Astro.response.headers.set('Cache-Control', 'no-store');
 
 const lang = 'hu' as const;
 const copy = copyFor(project, lang);
@@ -23,6 +30,7 @@ const image = project.thumbnail
   description={copy.blurb || t(lang)('meta.projects')}
   image={image}
   ogType="article"
+  noindex={token !== null}
   schema={projectSchema(project, lang, url, image?.src)}
 >
   <CaseStudyPage lang={lang} project={project} />
