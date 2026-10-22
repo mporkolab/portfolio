@@ -55,18 +55,40 @@ const refuse = (status: number, error: string) =>
     }),
   );
 
+/** Egy `host[:port]` fejléc hosztneve, vagy null, ha nem értelmezhető. */
+const hostnameOf = (host: string) => {
+  try {
+    return new URL(`http://${host}`).hostname;
+  } catch {
+    return null;
+  }
+};
+
 export const onRequest = defineMiddleware(async (context, next) => {
-  const { hostname } = context.url;
-  if (!LOCAL_HOSTS.has(hostname) && !allowedHosts.has(hostname)) {
+  // A böngésző által küldött Host fejléc, nem a `context.url`: élesben az Astro
+  // node adaptere a Host-ot nem veszi át (`security.allowedDomains` nélkül), a
+  // `context.url` ott mindig http://localhost:<port>. Azzal a host-ellenőrzés
+  // mindig átment, az origin-ellenőrzés pedig localhoston kívül mindig elbukott.
+  const host = context.request.headers.get('host') ?? context.url.host;
+  const hostname = hostnameOf(host);
+  if (!hostname || (!LOCAL_HOSTS.has(hostname) && !allowedHosts.has(hostname))) {
     return refuse(
       421,
-      `Ismeretlen cím: ${hostname}. Ha innen nyitod a CMS-t, add hozzá a CMS_URL-hez (cms/.env).`,
+      `Ismeretlen cím: ${hostname ?? host}. Ha innen nyitod a CMS-t, add hozzá a CMS_URL-hez (cms/.env).`,
     );
   }
 
   if (!['GET', 'HEAD', 'OPTIONS'].includes(context.request.method)) {
+    // Csak a hoszt (és port) számít: TLS-t végző proxy mögött a böngésző
+    // https-t küld, a szerver pedig http-t lát.
     const origin = context.request.headers.get('origin');
-    if (!origin || origin !== context.url.origin) return refuse(403, 'Érvénytelen eredet.');
+    let originHost: string | null = null;
+    try {
+      originHost = origin ? new URL(origin).host : null;
+    } catch {
+      originHost = null;
+    }
+    if (originHost !== host) return refuse(403, 'Érvénytelen eredet.');
   }
 
   return withHeaders(await next());
