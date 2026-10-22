@@ -11,6 +11,11 @@ export default defineConfig({
   adapter: node({ mode: 'standalone' }),
   integrations: [react()],
   server: { port: 2368 },
+  // Az eredetet a src/middleware.ts ellenőrzi, minden írási kérésen, a
+  // reverse proxyt is ismerve. Az Astro beépítettje élesben a kérés címét
+  // mindig http://localhost:<port>-nak látja, így proxy mögül minden
+  // multipart feltöltést (képek) „Cross-site POST” 403-mal elutasítana.
+  security: { checkOrigin: false },
   vite: {
     plugins: [tailwindcss()],
     ssr: {
