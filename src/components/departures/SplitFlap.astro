@@ -1,0 +1,186 @@
+---
+/**
+ * A word on a split-flap board: one cell per character. The server renders
+ * the final text, so it reads without JavaScript; the script below only spins
+ * the cells into place once per page. The cells are hidden from assistive
+ * technology, which reads the plain copy beside them instead.
+ */
+interface Props {
+  text: string;
+  size?: 'xl' | 'lg' | 'md' | 'sm';
+  color?: 'text' | 'amber' | 'green';
+  /** Cells to fill: the text is cut to it, or padded on the right with blanks. */
+  length?: number;
+  /** ms before the first cell settles. */
+  delay?: number;
+  as?: 'h1' | 'h2' | 'span' | 'div';
+  /** Purely visual: the surrounding element already says it (the hero's h1). */
+  decorative?: boolean;
+  /** Not played on load; a script turns it over itself (the clock, the check-in result). */
+  manual?: boolean;
+  class?: string;
+  [key: `data-${string}`]: string | undefined;
+}
+
+const {
+  text,
+  size = 'md',
+  color = 'text',
+  length,
+  delay = 0,
+  as: Tag = 'div',
+  decorative = false,
+  manual = false,
+  class: className,
+  ...data
+} = Astro.props;
+
+const shown = (length ? text.slice(0, length).padEnd(length, ' ') : text).toLocaleUpperCase('hu-HU');
+// Words keep their cells together; a long title wraps between words, never inside one.
+const words = shown.split(/( )/).filter((part) => part !== '');
+---
+
+<Tag
+  class:list={['flap', `flap--${size}`, `flap--${color}`, className]}
+  data-flap
+  data-delay={delay}
+  data-flap-manual={manual ? '' : undefined}
+  aria-hidden={decorative ? 'true' : undefined}
+  {...data}
+>
+  {!decorative && <span class="flap__text sr-only">{text.trim()}</span>}
+  <span class="flap__cells" aria-hidden="true">
+    {
+      words.map((word) =>
+        word === ' ' ? (
+          <span class="flap__cell flap__cell--blank" data-c=" " />
+        ) : (
+          <span class="flap__word">
+            {[...word].map((c) => (
+              <span class="flap__cell" data-c={c}>
+                {c}
+              </span>
+            ))}
+          </span>
+        ),
+      )
+    }
+  </span>
+</Tag>
+
+<script>
+  import { spinPage, stopAll } from '../../lib/flap-client';
+
+  document.addEventListener('astro:page-load', spinPage);
+  document.addEventListener('astro:before-swap', stopAll);
+</script>
+
+<style>
+  .flap {
+    --w: 30px;
+    --h: calc(var(--w) / 0.72);
+    --fs: 24px;
+    --gap: 3px;
+    margin: 0;
+    color: var(--text);
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .flap--amber {
+    color: var(--amber);
+  }
+
+  .flap--green {
+    color: var(--green);
+  }
+
+  .flap__cells {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--gap);
+  }
+
+  .flap__word {
+    display: flex;
+    gap: var(--gap);
+  }
+
+  .flap__cell {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: var(--w);
+    height: var(--h);
+    border-radius: var(--r-flap);
+    background: linear-gradient(
+      var(--surface-2) 0 49%,
+      var(--flap-split) 49% 51%,
+      var(--flap-bottom) 51%
+    );
+    font-size: var(--fs);
+    text-transform: uppercase;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+  }
+
+  /* The text sits on top of the split line, as it does on a real flap. */
+  .flap__cell::after {
+    content: '';
+    position: absolute;
+    inset: 49% 0 auto;
+    height: 2%;
+    background: var(--flap-split);
+    opacity: 0.85;
+  }
+
+  .flap__cell.is-spinning {
+    color: color-mix(in srgb, currentColor 70%, transparent);
+  }
+
+  .flap--xl {
+    --w: clamp(34px, 9.4vw, 128px);
+    --h: calc(var(--w) / 0.76);
+    --fs: clamp(30px, 8.4vw, 116px);
+    --gap: clamp(3px, 0.5vw, 8px);
+    font-weight: 900;
+  }
+
+  .flap--xl .flap__cell {
+    border-radius: clamp(3px, 0.5vw, 8px);
+  }
+
+  .flap--lg {
+    --w: clamp(24px, 7.6vw, 104px);
+    --h: calc(var(--w) / 0.76);
+    --fs: clamp(21px, 6.8vw, 94px);
+    --gap: clamp(2px, 0.4vw, 6px);
+    font-weight: 900;
+  }
+
+  .flap--lg .flap__cell {
+    border-radius: clamp(3px, 0.45vw, 7px);
+  }
+
+  /* Titles wrap between words; board rows and the clock never do. */
+  .flap--xl .flap__cells,
+  .flap--lg .flap__cells {
+    flex-wrap: wrap;
+    row-gap: calc(var(--gap) * 2);
+  }
+
+  /* A board row: 30×42 unless the board needs its cells smaller to fit. */
+  .flap--md {
+    --w: var(--cell, 30px);
+    --h: calc(var(--w) * 1.4);
+    --fs: calc(var(--w) * 0.8);
+  }
+
+  .flap--sm {
+    --w: 22px;
+    --h: 32px;
+    --fs: 18px;
+    --gap: 2px;
+  }
+</style>

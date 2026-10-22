@@ -1,0 +1,60 @@
+---
+/** The line above a page title: the way back on the left, where you are on the right. */
+interface Props {
+  back?: { href: string; label: string };
+}
+const { back } = Astro.props;
+---
+
+<div class="crumbs">
+  {
+    back ? (
+      <a href={back.href} class="crumbs__back">
+        <span aria-hidden="true">←</span> {back.label}
+      </a>
+    ) : (
+      <span />
+    )
+  }
+  <p class="crumbs__here"><slot /></p>
+</div>
+
+<style>
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 24px;
+    padding-block: 20px 8px;
+  }
+
+  .crumbs__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .crumbs__back:hover {
+    color: var(--text);
+  }
+
+  .crumbs__here {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--amber);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+</style>

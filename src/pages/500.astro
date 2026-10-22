@@ -1,7 +1,9 @@
 ---
-import { t, type Lang } from '../i18n/ui';
+import { t, path, type Lang } from '../i18n/ui';
 import Layout from '../layouts/Layout.astro';
-import PageShell from '../components/PageShell.astro';
+import Page from '../components/departures/Page.astro';
+import Crumbs from '../components/departures/Crumbs.astro';
+import SplitFlap from '../components/departures/SplitFlap.astro';
 
 /**
  * What a visitor sees when a page fails on the server, instead of a blank 500.
@@ -27,7 +29,27 @@ const lang: Lang = /^\/hu(\/|$)/.test(Astro.url.pathname.slice(base.length)) ? '
 const tr = t(lang);
 ---
 <Layout title={`${tr('error.title')} | Porkoláb Martin`} lang={lang} description={tr('error.body')} noindex>
-  <PageShell lang={lang} title={tr('error.title')} eyebrow={tr('error.eyebrow')}>
-    <p class="max-w-2xl text-lg sm:text-2xl font-semibold leading-snug">{tr('error.body')}</p>
-  </PageShell>
+  <Page lang={lang}>
+    <div class="wrap error">
+      <Crumbs back={{ href: path(lang, '/'), label: tr('crumb.departures') }}>{tr('error.eyebrow')}</Crumbs>
+      <SplitFlap text={tr('error.title')} size="lg" color="amber" as="h1" />
+      <p class="error__body">{tr('error.body')}</p>
+    </div>
+  </Page>
 </Layout>
+
+<style>
+  .error {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-bottom: clamp(48px, 8vw, 96px);
+  }
+
+  .error__body {
+    max-width: 52ch;
+    margin: 0;
+    color: var(--text-2);
+    font-size: clamp(17px, 1.8vw, 21px);
+  }
+</style>

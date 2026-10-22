@@ -1,297 +1,185 @@
 @import "tailwindcss";
+@import "./tokens.css";
 
 @theme {
-  --color-sign: var(--sign);
-  --color-sign-hover: var(--sign-hover);
-  --color-sign-ink: var(--sign-ink);
-  --color-panel: var(--panel);
-  --color-panel-ink: var(--panel-ink);
-  --color-frame: var(--frame);
-  --color-ground: var(--ground);
-  --color-ground-ink: var(--ground-ink);
-  --color-live: var(--live);
-  --font-sans: var(--font-inter);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-amber: var(--amber);
+  --color-green: var(--green);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+  --font-sans: var(--font-mono);
 }
 
-:root {
-  /* THE SINGLE DIAL. Every signed surface in the project — plates, headers,
-     buttons, badges, the access card, the mobile board — takes its colour from
-     these four values and nothing else. Change --sign and the whole system
-     follows; --sign-ink is the type that sits on it, so the two must stay a
-     legible pair. The current yellow is sampled from the photographed sign
-     face, which is why the plates need no paint of their own. */
-  --sign: #ffd100;
-  --sign-hover: #ffe14d;
-  --sign-ink: #14161a;
-
-  /* Illuminated light-box panels: white sheets, black type. */
-  --panel: #ffffff;
-  --panel-ink: #0a0a0a;
-
-  /* Physical housing and the concourse behind it */
-  --frame: #111318;
-  --ground: #0d1117;
-  /* Type on the dark concourse itself, outside any panel. */
-  --ground-ink: #ffffff;
-  /* Status only — the one colour that must not be the sign colour. */
-  --live: #12a150;
-  --concourse-image: url('/bg-terminal.jpg');
-
-  /* The four smear strengths the camera turn steps through, as tokens rather
-     than literals, so a device that cannot afford them can switch them off in
-     one place. See the note on the keyframes below. */
-  --turn-blur-1: url(#turn-blur-1);
-  --turn-blur-2: url(#turn-blur-2);
-  --turn-blur-3: url(#turn-blur-3);
-  --turn-blur-4: url(#turn-blur-4);
+html {
+  background: var(--bg);
+  color-scheme: dark;
 }
 
-/* An SVG filter is the one part of the turn that no engine composites on the
-   GPU: the full-viewport snapshot is re-rasterised on the CPU every frame, at
-   device pixel ratio, through a kernel up to 44px wide. A desktop absorbs that;
-   a tablet does not, and the turn arrives as a stutter — or as nothing at all,
-   once enough frames are dropped. The transforms are free by comparison, so a
-   touch device keeps the whole pan and gives up only the smear.
-
-   Two queries rather than one `or`: the same rule, stated in the two ways an
-   engine might answer for a tablet. */
-@media (pointer: coarse) {
-  :root {
-    --turn-blur-1: none;
-    --turn-blur-2: none;
-    --turn-blur-3: none;
-    --turn-blur-4: none;
-  }
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
-@media (hover: none) {
-  :root {
-    --turn-blur-1: none;
-    --turn-blur-2: none;
-    --turn-blur-3: none;
-    --turn-blur-4: none;
+main {
+  flex: 1;
+}
+
+/* Every page's content column. */
+.wrap {
+  width: 100%;
+  max-width: calc(var(--max) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* The small uppercase lines the whole terminal is signed in. */
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+@media (min-width: 640px) {
+  .label {
+    font-size: 13px;
   }
 }
 
-/* Which board a device gets.
- *
- * The plate is a photograph with panels typeset into it, so its type scales with
- * its width: below about a thousand pixels the small labels stop being readable,
- * which is why there is a stacked board at all. But width alone picks wrong on a
- * tablet — a portrait iPad is 1024 wide and would take the plate, then show it as
- * a thin strip stranded in a tall screen. So the plate needs room *and* a landscape
- * shape; everything else gets the stacked board. Landscape tablets qualify, and
- * that is the answer to "can tablets use the desktop view": in landscape, yes.
- *
- * The threshold is square rather than something wider on purpose: it has to keep
- * a portrait tablet (0.69–0.75) out, without also taking the plate away from an
- * unusually tall desktop window, which is perfectly capable of showing it.
- */
-.wide-only {
-  display: none;
+.display {
+  font-family: var(--font-display);
+  font-weight: 900;
+  line-height: 0.92;
+  text-transform: uppercase;
 }
 
-@media (min-width: 1024px) and (min-aspect-ratio: 1 / 1) {
-  .wide-only {
-    /* Fixed height with the overflow clipped: this is what lets the plate be
-       taller than the viewport and get cropped instead of scrolled. */
-    height: 100dvh;
-    display: grid;
-    place-items: center;
-    overflow: hidden;
-  }
-
-  .narrow-only {
-    display: none;
-  }
+:where(a, button, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
 }
 
-/* The concourse the board hangs in. Drop the class from <body> to get a flat ground. */
-.concourse::before,
-.concourse::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
+/* A status light. It blinks unless motion was asked to stay still. */
+.led {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
 }
 
-.concourse::before {
-  background: var(--concourse-image) center / cover no-repeat;
-  filter: brightness(0.42) saturate(0.55) contrast(1.15);
+.led--blink {
+  animation: led-blink 1.6s steps(1, end) infinite;
 }
 
-/* Darkens the edges so the illuminated board stays the brightest thing on screen. */
-.concourse::after {
-  background: radial-gradient(ellipse at 50% 40%, transparent 30%, var(--ground) 100%);
-  opacity: 0.85;
-}
-
-/* The board hangs slightly side-on, as in the terminal mock. */
-.board-scene {
-  perspective: 2400px;
-  perspective-origin: 72% 50%;
-}
-
-.board-tilt {
-  transform: rotateY(-4deg) rotateX(1.2deg);
-  transform-style: preserve-3d;
-}
-
-@media (max-width: 767px) {
-  .board-tilt {
-    transform: none;
+@keyframes led-blink {
+  50% {
+    opacity: 0.25;
   }
 }
 
-:where(a):focus-visible {
-  outline: 4px solid var(--sign-ink);
-  outline-offset: -8px;
+/* Decorative barcode on paper. */
+.barcode {
+  display: block;
+  height: 44px;
+  min-width: 96px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--ink) 0 2px,
+    transparent 2px 4px,
+    var(--ink) 4px 5px,
+    transparent 5px 8px,
+    var(--ink) 8px 11px,
+    transparent 11px 13px
+  );
 }
 
-.panel-box:focus-visible {
-  outline-color: var(--sign);
+/* Buttons. 44px is the smallest touch target anywhere on the site. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 20px;
+  border: 0;
+  border-radius: 4px;
+  font: 600 14px/1.2 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
-.turn-blur-defs {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
+.btn--ink {
+  background: var(--ink);
+  color: var(--paper);
 }
 
-/* Turning your head between two rooms. No opacity anywhere: the incoming scene
-   is opaque and slides in over the outgoing one, which is what makes it read as
-   a pan rather than a dissolve.
-
-   The blur follows the same rule a game engine uses for camera motion blur: it
-   is a directional smear along the sweep, and it is proportional to how fast the
-   camera is turning right now — so both halves are equally smeared at the same
-   instant, peak in the middle of the turn, and are perfectly sharp the moment
-   the camera stops. Blurring only the outgoing half, or clearing the incoming
-   one early, is what made the arrival look unearned. */
-@keyframes pan-out-left {
-  from {
-    transform: perspective(1600px) translateX(0) rotateY(0deg) scale(1);
-    filter: none;
-  }
-  8% {
-    filter: var(--turn-blur-1);
-  }
-  22% {
-    filter: var(--turn-blur-3);
-  }
-  45% {
-    filter: var(--turn-blur-4);
-  }
-  70% {
-    filter: var(--turn-blur-3);
-  }
-  88% {
-    filter: var(--turn-blur-2);
-  }
-  to {
-    transform: perspective(1600px) translateX(-46%) rotateY(26deg) scale(0.97);
-    filter: var(--turn-blur-2);
-  }
+.btn--ink:hover {
+  background: #2b2b2b;
 }
 
-@keyframes pan-in-right {
-  from {
-    transform: perspective(1600px) translateX(46%) rotateY(-26deg) scale(0.97);
-    filter: var(--turn-blur-4);
-  }
-  45% {
-    filter: var(--turn-blur-4);
-  }
-  70% {
-    filter: var(--turn-blur-3);
-  }
-  85% {
-    filter: var(--turn-blur-2);
-  }
-  95% {
-    filter: var(--turn-blur-1);
-  }
-  to {
-    transform: perspective(1600px) translateX(0) rotateY(0deg) scale(1);
-    filter: none;
-  }
+.btn--amber {
+  background: var(--amber);
+  color: var(--ink);
 }
 
-@keyframes pan-out-right {
-  from {
-    transform: perspective(1600px) translateX(0) rotateY(0deg) scale(1);
-    filter: none;
-  }
-  8% {
-    filter: var(--turn-blur-1);
-  }
-  22% {
-    filter: var(--turn-blur-3);
-  }
-  45% {
-    filter: var(--turn-blur-4);
-  }
-  70% {
-    filter: var(--turn-blur-3);
-  }
-  88% {
-    filter: var(--turn-blur-2);
-  }
-  to {
-    transform: perspective(1600px) translateX(46%) rotateY(-26deg) scale(0.97);
-    filter: var(--turn-blur-2);
-  }
+.btn--amber:hover {
+  background: #ffc23d;
 }
 
-@keyframes pan-in-left {
-  from {
-    transform: perspective(1600px) translateX(-46%) rotateY(26deg) scale(0.97);
-    filter: var(--turn-blur-4);
-  }
-  45% {
-    filter: var(--turn-blur-4);
-  }
-  70% {
-    filter: var(--turn-blur-3);
-  }
-  85% {
-    filter: var(--turn-blur-2);
-  }
-  95% {
-    filter: var(--turn-blur-1);
-  }
-  to {
-    transform: perspective(1600px) translateX(0) rotateY(0deg) scale(1);
-    filter: none;
-  }
+.btn--ghost {
+  background: transparent;
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--line-2);
 }
 
-/* A language switch stays where it is; see the note in Layout.astro. */
-:root[data-no-turn]::view-transition-old(scene),
-:root[data-no-turn]::view-transition-new(scene) {
-  animation: none;
+.btn--ghost:hover {
+  box-shadow: inset 0 0 0 1px var(--amber);
+  color: var(--amber);
 }
 
-/* No smear for anyone who asked motion to stay still. */
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(scene),
-  ::view-transition-new(scene) {
-    animation: none;
-  }
+.btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
 }
 
-/* The named scene carries the whole movement, so the root must not cross-fade
-   underneath it — that fade was the grey flash between the two rooms. */
+/* Language switches stay where they are instead of cross-fading the page. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation: none;
+  animation-duration: 160ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(scene),
-  ::view-transition-new(scene) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
     animation: none;
   }
 }
@@ -299,28 +187,57 @@
 /* The case study, as the CMS's editor writes it (cms/src/lib/editor): H2/H3,
    lists, quotes, tables, rules, images in a <figure>, and paragraph indents as
    data-indent. Tailwind's reset takes all of that back to plain text, so it is
-   given the board's type here — bold uppercase headings, a heavy ink rule. */
-.story h2 {
-  margin-top: 1.5rem;
-  font-size: 1.5rem;
-  font-weight: 900;
-  line-height: 1.1;
-  letter-spacing: -0.025em;
-  text-transform: uppercase;
-  color: var(--panel-ink);
+   given the terminal's type here. The H2s themselves are lifted out into the
+   flight-log sections (lib/flightlog.ts); these rules are for what is left. */
+.story {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  max-width: 64ch;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--text-2);
 }
-.story h3 {
-  margin-top: 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--panel-ink);
-}
+
 @media (min-width: 640px) {
-  .story h2 { font-size: 2rem; }
-  .story h3 { font-size: 1rem; }
+  .story {
+    font-size: 18px;
+  }
 }
+
+.story > * {
+  margin: 0;
+}
+
+.story a {
+  color: var(--amber);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.story strong {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.story h2 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.story h3 {
+  margin-top: 0.5em;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+
 .story ul,
 .story ol {
   padding-left: 1.5em;
@@ -329,30 +246,56 @@
 .story ol { list-style: decimal; }
 .story li + li { margin-top: 0.35em; }
 .story li > p { margin: 0; }
+.story li::marker { color: var(--amber); }
+
 .story blockquote {
-  border-left: 4px solid var(--panel-ink);
+  border-left: 2px solid var(--amber);
   padding-left: 1em;
-  font-weight: 600;
+  color: var(--text);
 }
+
 .story hr {
   border: 0;
-  border-top: 2px solid var(--panel-ink);
+  border-top: 1px dashed var(--line-2);
 }
-.story figure.post-image-full img { width: 100%; }
-.story figure.post-image-text img { margin-inline: auto; }
+
+/* Images run the full width of the column, in a dark frame. */
+.story img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-board);
+  background: var(--surface);
+}
+
+.story figure.post-image-text img {
+  width: auto;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.story figcaption {
+  margin-top: 0.5em;
+  font-size: 13px;
+  color: var(--muted);
+}
+
 .story .tableWrapper,
 .story table {
   display: block;
   overflow-x: auto;
+  border-collapse: collapse;
 }
+
 .story th,
 .story td {
-  border: 1px solid color-mix(in srgb, var(--panel-ink) 25%, transparent);
+  border: 1px solid var(--line-2);
   padding: 0.4em 0.6em;
   text-align: left;
   vertical-align: top;
 }
-.story th { font-weight: 700; }
+.story th { font-weight: 600; color: var(--text); }
 .story th > p,
 .story td > p { margin: 0; }
 .story [data-indent="1"] { margin-left: 2em; }

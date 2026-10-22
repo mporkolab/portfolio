@@ -1,57 +1,139 @@
 ---
-import PageShell from '../PageShell.astro';
-import Arrow from '../Arrow.astro';
-import { t, type Lang } from '../../i18n/ui';
+import Page from '../departures/Page.astro';
+import Crumbs from '../departures/Crumbs.astro';
+import SplitFlap from '../departures/SplitFlap.astro';
+import Clock from '../departures/Clock.astro';
+import { t, path, links, type Lang } from '../../i18n/ui';
 import { CONTACT_EMAIL, CONTACT_ENDPOINT, CONTACT_ACCESS_KEY } from '../../lib/contact';
-interface Props { lang: Lang }
+
+interface Props {
+  lang: Lang;
+}
 const { lang } = Astro.props;
 const tr = t(lang);
 
-const field = 'w-full border-2 border-panel-ink bg-transparent px-4 py-3 text-base sm:text-lg font-bold text-panel-ink placeholder:text-panel-ink/35 focus:outline-none focus:ring-4 focus:ring-panel-ink/20';
-const label = 'block text-[0.65rem] sm:text-xs font-bold uppercase tracking-[0.3em] text-panel-ink/60';
+const routes = [
+  { code: 'GH', name: tr('footer.gh'), handle: 'mporkolab', href: links.github },
+  { code: 'LI', name: tr('footer.li'), handle: 'martin-porkolab', href: links.linkedin },
+];
+
+const fields = [
+  { id: 'cf-name', name: 'name', label: tr('form.name'), sub: tr('form.name.sub'), type: 'text', auto: 'name' },
+  { id: 'cf-email', name: 'email', label: tr('form.email'), sub: tr('form.email.sub'), type: 'email', auto: 'email' },
+] as const;
 ---
-<PageShell lang={lang} title={tr('contact.title')} eyebrow="Gate A3">
-  <form
-    class="contact max-w-2xl"
-    data-endpoint={CONTACT_ENDPOINT}
-    data-access-key={CONTACT_ACCESS_KEY}
-    {/* Only reaches the page when there is no endpoint to post to — an address
-        in the markup is an address a scraper collects. */}
-    data-mailto={CONTACT_ENDPOINT ? undefined : CONTACT_EMAIL}
-    data-sending={tr('form.sending')}
-    data-sent={tr('form.sent')}
-    data-error={tr('form.error')}
-    novalidate
-  >
-    <div class="grid gap-5 sm:grid-cols-2">
-      <p class="m-0">
-        <label class={label} for="cf-name">{tr('form.name')}</label>
-        <input class={`mt-2 ${field}`} id="cf-name" name="name" type="text" required autocomplete="name" />
-      </p>
-      <p class="m-0">
-        <label class={label} for="cf-email">{tr('form.email')}</label>
-        <input class={`mt-2 ${field}`} id="cf-email" name="email" type="email" required autocomplete="email" />
-      </p>
+
+<Page lang={lang}>
+  <div class="wrap contact-page">
+    <Crumbs back={{ href: path(lang, '/'), label: tr('crumb.departures') }}>
+      <span class="led led--blink desk-led" aria-hidden="true" />
+      {tr('contact.crumb')}
+    </Crumbs>
+
+    <SplitFlap text={tr('contact.title')} size="lg" color="amber" as="h1" />
+
+    <div class="desk">
+      <div class="desk__info">
+        <p class="desk__intro">{tr('contact.intro')}</p>
+
+        <h2 class="label">{tr('contact.routes')}</h2>
+        <ul class="routes">
+          {
+            routes.map((r) => (
+              <li>
+                <a href={r.href} target="_blank" rel="noopener noreferrer" class="route-link">
+                  <span class="route-link__code" aria-hidden="true">{r.code}</span>
+                  <span class="route-link__name">{r.name}</span>
+                  <span class="route-link__handle">{r.handle}</span>
+                  <span class="route-link__go" aria-hidden="true">↗</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+
+        <p class="desk__time label">
+          {tr('contact.localTime')} <Clock lang={lang} plain /> · {tr('contact.zone')}
+        </p>
+      </div>
+
+      <div class="ticket">
+        <header class="ticket__band">
+          <span>{tr('ticket.title')}</span>
+          <span>{tr('ticket.desk')}</span>
+        </header>
+
+        <form
+          class="contact"
+          data-endpoint={CONTACT_ENDPOINT}
+          data-access-key={CONTACT_ACCESS_KEY}
+          {/* Only reaches the page when there is no endpoint to post to — an address
+              in the markup is an address a scraper collects. */}
+          data-mailto={CONTACT_ENDPOINT ? undefined : CONTACT_EMAIL}
+          data-sending={tr('form.sending')}
+          data-error={tr('form.error')}
+          novalidate
+        >
+          {
+            fields.map((f) => (
+              <p class="field">
+                <label class="field__label" for={f.id}>
+                  {f.label}
+                  <span class="field__sub" aria-hidden="true">{f.sub}</span>
+                </label>
+                <input class="field__input" id={f.id} name={f.name} type={f.type} required autocomplete={f.auto} />
+              </p>
+            ))
+          }
+          <p class="field">
+            <label class="field__label" for="cf-message">
+              {tr('form.message')}
+              <span class="field__sub" aria-hidden="true">{tr('form.message.sub')}</span>
+            </label>
+            <textarea class="field__input field__input--area" id="cf-message" name="message" rows="5" required></textarea>
+          </p>
+
+          <div class="ticket__foot">
+            <button type="submit" class="btn btn--ink">
+              {tr('form.send')} <span aria-hidden="true">→</span>
+            </button>
+            <span class="barcode ticket__code" aria-hidden="true" />
+          </div>
+
+          <p class="contact__status" aria-live="polite"></p>
+        </form>
+
+        <!-- Filled in and shown once the message is through; a live region
+             from the start, so the change is announced. -->
+        <div class="checked" role="status">
+          <div class="checked__inner" hidden>
+            <SplitFlap text={tr('checked.flap')} size="md" color="green" manual class="checked__flap" />
+            <dl class="checked__fields">
+              <div>
+                <dt>{tr('checked.passenger')}</dt>
+                <dd class="checked__name"></dd>
+              </div>
+              <div>
+                <dt>{tr('checked.destination')}</dt>
+                <dd>P. MARTIN</dd>
+              </div>
+              <div>
+                <dt>{tr('checked.reply')}</dt>
+                <dd>{tr('checked.replyValue')}</dd>
+              </div>
+            </dl>
+            <p class="checked__thanks">{tr('form.sent')}</p>
+            <button type="button" class="btn btn--ink checked__again">{tr('checked.again')}</button>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <p class="mt-5 m-0">
-      <label class={label} for="cf-message">{tr('form.message')}</label>
-      <textarea class={`mt-2 ${field} min-h-40 resize-y`} id="cf-message" name="message" rows="6" required></textarea>
-    </p>
-
-    <button
-      type="submit"
-      class="group mt-6 flex w-full items-center justify-between gap-4 bg-sign px-5 py-4 sm:px-8 sm:py-5 text-lg sm:text-2xl font-black uppercase tracking-[0.15em] text-sign-ink hover:bg-sign-hover transition-colors disabled:opacity-60"
-    >
-      {tr('form.send')}
-      <Arrow dir="right" class="w-7 h-7 sm:w-9 sm:h-9 transition-transform group-hover:translate-x-2" />
-    </button>
-
-    <p class="contact__status mt-4 text-sm sm:text-base font-bold text-panel-ink/70" role="status" aria-live="polite"></p>
-  </form>
-</PageShell>
+  </div>
+</Page>
 
 <script>
+  import { spin } from '../../lib/flap-client';
+
   // Runs on every view transition too, so the handler is bound per page load.
   const wire = () => {
     const form = document.querySelector<HTMLFormElement>('.contact');
@@ -60,9 +142,28 @@ const label = 'block text-[0.65rem] sm:text-xs font-bold uppercase tracking-[0.3
 
     const status = form.querySelector<HTMLParagraphElement>('.contact__status')!;
     const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const checked = document.querySelector<HTMLElement>('.checked__inner')!;
+
+    const showForm = () => {
+      checked.hidden = true;
+      form.hidden = false;
+      form.querySelector<HTMLInputElement>('input')?.focus();
+    };
+
+    const showChecked = (name: string) => {
+      checked.querySelector('.checked__name')!.textContent = name.toLocaleUpperCase('hu-HU');
+      form.hidden = true;
+      checked.hidden = false;
+      const flap = checked.querySelector<HTMLElement>('[data-flap]');
+      if (flap) spin(flap);
+    };
+
+    checked.querySelector('.checked__again')!.addEventListener('click', showForm);
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
+      status.classList.remove('is-error');
+      status.textContent = '';
       if (!form.reportValidity()) return;
 
       const data = new FormData(form);
@@ -96,8 +197,10 @@ const label = 'block text-[0.65rem] sm:text-xs font-bold uppercase tracking-[0.3
         });
         if (!response.ok) throw new Error(String(response.status));
         form.reset();
-        status.textContent = form.dataset.sent ?? '';
+        status.textContent = '';
+        showChecked(name);
       } catch {
+        status.classList.add('is-error');
         status.textContent = form.dataset.error ?? '';
       } finally {
         button.disabled = false;
@@ -108,3 +211,257 @@ const label = 'block text-[0.65rem] sm:text-xs font-bold uppercase tracking-[0.3
   wire();
   document.addEventListener('astro:page-load', wire);
 </script>
+
+<style>
+  .contact-page {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(24px, 3.5vw, 40px);
+    padding-bottom: clamp(48px, 8vw, 96px);
+  }
+
+  .desk-led {
+    color: var(--green);
+  }
+
+  .desk {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 40px clamp(32px, 5vw, 72px);
+  }
+
+  .desk__info {
+    flex: 1 1 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .desk__info h2 {
+    margin: 12px 0 0;
+  }
+
+  .desk__intro {
+    max-width: 46ch;
+    margin: 0;
+    color: var(--text-2);
+    font-size: clamp(16px, 1.6vw, 19px);
+    line-height: 1.65;
+  }
+
+  .routes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .route-link {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 56px;
+    padding: 0 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-board);
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+    transition: background 140ms ease, border-color 140ms ease;
+  }
+
+  .route-link:hover {
+    background: var(--surface-2);
+    border-color: var(--line-2);
+  }
+
+  .route-link__code {
+    color: var(--amber);
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 900;
+  }
+
+  .route-link__name {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .route-link__handle {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .route-link__go {
+    color: var(--amber);
+  }
+
+  .desk__time {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0 0;
+  }
+
+  .desk__time :global(.clock__zone) {
+    display: none;
+  }
+
+  .ticket {
+    flex: 1 1 420px;
+    overflow: hidden;
+    border-radius: var(--r-card);
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .ticket__band {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 22px;
+    background: var(--amber);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .contact {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 24px 22px 22px;
+  }
+
+  .contact[hidden] {
+    display: none;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+  }
+
+  .field__label {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .field__sub {
+    color: var(--ink-muted);
+    font-weight: 400;
+  }
+
+  .field__input {
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 14px;
+    border: 0;
+    border-bottom: 2px solid var(--ink);
+    border-radius: 4px 4px 0 0;
+    background: var(--paper-2);
+    color: var(--ink);
+    font: 400 16px/1.5 var(--font-mono);
+  }
+
+  .field__input--area {
+    min-height: 140px;
+    resize: vertical;
+  }
+
+  .field__input:focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 3px;
+  }
+
+  .ticket__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 20px;
+    border-top: 2px dashed var(--ink-line);
+  }
+
+  .ticket__code {
+    width: 120px;
+    min-width: 0;
+  }
+
+  .contact__status {
+    min-height: 1.5em;
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: 14px;
+  }
+
+  .contact__status:empty {
+    display: none;
+  }
+
+  .contact__status.is-error {
+    color: var(--red-ink);
+    font-weight: 600;
+  }
+
+  .checked__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 28px 22px 24px;
+  }
+
+  .checked__inner[hidden] {
+    display: none;
+  }
+
+  .checked__fields {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding-top: 16px;
+    border-top: 2px dashed var(--ink-line);
+  }
+
+  .checked__fields dt {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .checked__fields dd {
+    margin: 2px 0 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .checked__thanks {
+    margin: 0;
+    font-size: 15px;
+  }
+
+  .checked__again {
+    align-self: flex-start;
+  }
+</style>

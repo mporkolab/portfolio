@@ -1,0 +1,182 @@
+---
+import Clock from './Clock.astro';
+import LangToggle from './LangToggle.astro';
+import { path, here, t, type Lang } from '../../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  /** The home page: the board itself is the navigation, so the header only says the terminal is open. */
+  home?: boolean;
+}
+const { lang, home = false } = Astro.props;
+const tr = t(lang);
+const page = here(Astro.url.pathname);
+
+const gates = [
+  { id: 'A1', label: tr('gate.profile'), to: '/about' },
+  { id: 'A2', label: tr('gate.projects'), to: '/projects' },
+  { id: 'A3', label: tr('gate.contact'), to: '/contact' },
+].map((g) => ({ ...g, href: path(lang, g.to), current: page === g.to || page.startsWith(`${g.to}/`) }));
+---
+
+<header class="site-header">
+  <div class="wrap site-header__row">
+    <a href={path(lang, '/')} class="logo" aria-label={tr('header.home')}>
+      <span class="logo__mark" aria-hidden="true">PM</span>
+      <span class="logo__name" aria-hidden="true">Porkoláb Martin</span>
+    </a>
+
+    {
+      home ? (
+        <p class="terminal">
+          <span class="led led--blink" aria-hidden="true" />
+          {tr('header.terminal')}
+        </p>
+      ) : (
+        <nav class="gates" aria-label={tr('header.nav')}>
+          {gates.map((g) => (
+            <a href={g.href} class:list={['gate', g.current && 'is-on']} aria-current={g.current ? 'page' : undefined}>
+              <span class="gate__id">{g.id}</span>
+              <span>{g.label}</span>
+            </a>
+          ))}
+        </nav>
+      )
+    }
+
+    <div class="site-header__end">
+      <Clock lang={lang} />
+      <LangToggle lang={lang} />
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+  }
+
+  .site-header__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    padding-block: 14px;
+  }
+
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .logo__mark {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    background: var(--amber);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+  }
+
+  .logo__name {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .terminal {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    color: var(--green);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .gates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .gate {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 4px;
+    color: var(--text-2);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .gate:hover {
+    color: var(--text);
+    background: var(--surface);
+  }
+
+  .gate__id {
+    padding: 2px 6px;
+    border: 1px solid var(--amber);
+    border-radius: 2px;
+    color: var(--amber);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+
+  .gate.is-on {
+    background: var(--surface-2);
+    color: var(--text);
+    box-shadow: inset 0 -2px 0 var(--amber);
+  }
+
+  .gate.is-on .gate__id {
+    background: var(--amber);
+    color: var(--ink);
+  }
+
+  .site-header__end {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  @media (max-width: 719px) {
+    .gates {
+      order: 3;
+      width: 100%;
+    }
+
+    .gate {
+      flex: 1 1 0;
+      justify-content: center;
+      padding: 0 8px;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .logo__name {
+      display: none;
+    }
+  }
+</style>

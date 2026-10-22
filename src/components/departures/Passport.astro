@@ -1,0 +1,175 @@
+---
+import { Image } from 'astro:assets';
+import portrait from '../../assets/me.jpeg';
+import { t, type Lang } from '../../i18n/ui';
+
+/** The passport's data page: who the holder is, in the fields a passport has. */
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const tr = t(lang);
+
+// A passport's machine-readable zone (TD3: two lines of 44), kept honest: it
+// says what the site says.
+const mrz = ['P<HUNPORKOLAB<<MARTIN'.padEnd(44, '<'), 'PM0001<<<<HUN<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.padEnd(44, '<')];
+
+const fields = [
+  { label: tr('passport.occupation'), value: tr('meta.role') },
+  { label: tr('passport.base'), value: tr('passport.baseValue') },
+  { label: tr('passport.qualification'), value: tr('passport.qualificationValue') },
+  { label: tr('about.langTitle'), value: tr('about.langs') },
+  { label: tr('passport.authority'), value: tr('passport.authorityValue') },
+];
+---
+
+<section class="passport" aria-label={tr('passport.title')}>
+  <header class="passport__band">
+    <span>{tr('passport.title')}</span>
+    <span>{tr('passport.type')}</span>
+  </header>
+
+  <div class="passport__body">
+    <figure class="passport__photo">
+      <Image src={portrait} alt={tr('card.photo')} width={280} densities={[1, 2]} format="avif" quality={72} loading="eager" />
+      <figcaption class="passport__sign" aria-hidden="true">P. Martin</figcaption>
+    </figure>
+
+    <dl class="passport__fields">
+      <div class="passport__name">
+        <dt>{tr('passport.surname')}</dt>
+        <dd>PORKOLÁB</dd>
+      </div>
+      <div class="passport__name">
+        <dt>{tr('passport.given')}</dt>
+        <dd>MARTIN</dd>
+      </div>
+      {
+        fields.map((f) => (
+          <div>
+            <dt>{f.label}</dt>
+            <dd>{f.value}</dd>
+          </div>
+        ))
+      }
+      <div>
+        <dt>{tr('passport.status')}</dt>
+        <dd class="is-open"><span class="led" aria-hidden="true" /> {tr('passport.statusValue')}</dd>
+      </div>
+    </dl>
+  </div>
+
+  <div class="passport__mrz" aria-hidden="true">
+    {mrz.map((line) => <span>{line}</span>)}
+  </div>
+</section>
+
+<style>
+  .passport {
+    overflow: hidden;
+    border-radius: var(--r-passport);
+    background:
+      repeating-radial-gradient(circle at 85% 30%, transparent 0 18px, rgb(20 20 20 / 0.04) 18px 19px),
+      var(--paper);
+    color: var(--ink);
+  }
+
+  .passport__band {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px 16px;
+    padding: 12px 24px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .passport__body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px clamp(24px, 4vw, 48px);
+    padding: clamp(20px, 3vw, 36px);
+  }
+
+  .passport__photo {
+    flex: 0 0 auto;
+    width: min(100%, 220px);
+    margin: 0;
+  }
+
+  .passport__photo img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: 6px;
+    filter: grayscale(0.25) contrast(1.05);
+  }
+
+  .passport__sign {
+    margin-top: 10px;
+    color: var(--stamp-blue);
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-style: italic;
+    transform: rotate(-3deg);
+  }
+
+  .passport__fields {
+    flex: 1 1 320px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    align-content: start;
+    gap: 18px 28px;
+    margin: 0;
+  }
+
+  .passport__fields dt {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .passport__fields dd {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 0;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .passport__name dd {
+    font-family: var(--font-display);
+    font-size: clamp(44px, 6vw, 72px);
+    font-weight: 900;
+    line-height: 0.95;
+  }
+
+  .passport__fields dd.is-open {
+    color: var(--green-ink);
+  }
+
+  .passport__mrz {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 14px 24px 18px;
+    border-top: 1px solid var(--ink-line);
+    color: #3d3a34;
+    font-family: var(--font-mono);
+    font-size: clamp(10px, 1.45vw, 18px);
+    letter-spacing: 0.18em;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+</style>

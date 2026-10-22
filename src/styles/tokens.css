@@ -1,0 +1,43 @@
+/* Departures — the whole palette, type and geometry in one place. Dark only:
+   the terminal at night is the concept, so there is no light theme. Every
+   pair used for text here clears 4.5:1; check a new colour before adding it. */
+:root {
+  /* The terminal */
+  --bg: #0b0b0c;
+  --surface: #111113;
+  --surface-2: #1c1c20;
+  --flap-bottom: #17171a;
+  --flap-split: #050506;
+  --line: #2a2a2e;
+  --line-2: #3a3a3f;
+  --text: #ede8dc;
+  --text-2: #dcd7cb;
+  --text-3: #c9c4b8;
+  --muted: #8f8b82;
+  --amber: #ffb000;
+  --green: #4ade80;
+
+  /* Paper: boarding passes, the passport, the check-in ticket */
+  --paper: #ede8dc;
+  --paper-2: #e2dccd;
+  --paper-3: #dcd6c7;
+  --ink: #141414;
+  --ink-muted: #5a564e;
+  --ink-line: #a8a295;
+  --green-ink: #146b33;
+  --red-ink: #b3261e;
+
+  /* Profile stamps only */
+  --stamp-blue: #1f4e99;
+  --stamp-red: #b3261e;
+  --stamp-green: #146b33;
+  --stamp-purple: #6b3fa0;
+
+  /* Geometry */
+  --max: 1280px;
+  --gutter: clamp(16px, 4vw, 48px);
+  --r-flap: 3px;
+  --r-board: 6px;
+  --r-card: 14px;
+  --r-passport: 18px;
+}

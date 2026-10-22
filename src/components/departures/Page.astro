@@ -1,0 +1,18 @@
+---
+import SiteHeader from './SiteHeader.astro';
+import SiteFooter from './SiteFooter.astro';
+import type { Lang } from '../../i18n/ui';
+
+/** Every page's frame: the header, the page, the footer. */
+interface Props {
+  lang: Lang;
+  home?: boolean;
+}
+const { lang, home } = Astro.props;
+---
+
+<SiteHeader lang={lang} home={home} />
+<main id="main">
+  <slot />
+</main>
+<SiteFooter lang={lang} />
