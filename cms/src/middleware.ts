@@ -65,11 +65,18 @@ const hostnameOf = (host: string) => {
 };
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  // A böngésző által küldött Host fejléc, nem a `context.url`: élesben az Astro
-  // node adaptere a Host-ot nem veszi át (`security.allowedDomains` nélkül), a
+  // A böngésző által használt cím, nem a `context.url`: élesben az Astro node
+  // adaptere a Host-ot nem veszi át (`security.allowedDomains` nélkül), a
   // `context.url` ott mindig http://localhost:<port>. Azzal a host-ellenőrzés
   // mindig átment, az origin-ellenőrzés pedig localhoston kívül mindig elbukott.
-  const host = context.request.headers.get('host') ?? context.url.host;
+  //
+  // Reverse proxy (pl. Cosmos) mögött a Host lehet a proxyé; az eredetit az
+  // X-Forwarded-Host hozza. Megbízni benne biztonságos: a címnek így is a
+  // CMS_URL-ben kell lennie, és az Origin-nek (amit a böngésző állít, oldal nem
+  // hamisíthat) ugyanerre kell mutatnia.
+  const headers = context.request.headers;
+  const host =
+    headers.get('x-forwarded-host')?.split(',')[0].trim() || headers.get('host') || context.url.host;
   const hostname = hostnameOf(host);
   if (!hostname || (!LOCAL_HOSTS.has(hostname) && !allowedHosts.has(hostname))) {
     return refuse(
