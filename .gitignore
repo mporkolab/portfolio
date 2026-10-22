@@ -23,6 +23,6 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
-# Ghost CMS
+# CMS (cms/): beállítások, adatbázis, képek
 cms/.env
 cms/data/

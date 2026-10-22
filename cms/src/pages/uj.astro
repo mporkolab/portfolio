@@ -1,0 +1,28 @@
+---
+/**
+ * Új projekt. Az adatbázisba csak az első mentéskor kerül (lásd
+ * ProjectEditor), így egy elhagyott „Új” kattintás nem hagy üres piszkozatot.
+ */
+import Layout from "../layouts/Layout.astro";
+import ProjectEditor from "../components/ProjectEditor";
+import { emptyCopy, type EditorProject } from "../lib/editor/shared";
+import { previewEnabled } from "../lib/preview";
+
+const project: EditorProject = {
+    id: null,
+    slug: "",
+    status: "draft",
+    publishedAt: null,
+    featured: false,
+    liveUrl: "",
+    stack: "",
+    coverImage: null,
+    coverIsLogo: false,
+    copies: { en: emptyCopy(), hu: emptyCopy() },
+    updatedAt: null,
+};
+---
+
+<Layout title="Új projekt">
+    <ProjectEditor client:only="react" initialProject={project} canPreview={previewEnabled()} />
+</Layout>

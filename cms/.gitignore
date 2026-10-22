@@ -1,2 +1,7 @@
-data/
+node_modules/
+dist/
+.astro/
 .env
+# Az adatbázis, a képek és a mentések (Dockerben a cms-data volume-on vannak,
+# fejlesztésben itt). A régi Ghost adatai (data/mysql, data/content) is itt.
+data/

@@ -15,16 +15,19 @@ export default defineConfig({
   // the container's, so it cannot be read off the request.
   site: process.env.SITE_URL || 'https://martinporkolab.hu',
   base: basePath ? `/${basePath}` : '/',
-  // The projects are read from Ghost on each request, so a post published there
-  // is on the site at once — no rebuild. Pages that show no project are still
-  // prerendered (`export const prerender = true`).
+  // The projects are read from the CMS's database on each request, so a project
+  // published there is on the site at once — no rebuild. Pages that show no
+  // project are still prerendered (`export const prerender = true`).
   output: 'server',
   adapter: node({ mode: 'standalone' }),
   env: {
     schema: {
-      // Read at runtime, from the container's environment (or .env in dev).
-      GHOST_URL: envField.string({ context: 'server', access: 'secret', default: 'http://localhost:2368' }),
-      GHOST_CONTENT_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+      // Read at runtime, from the container's environment (or .env in dev). The
+      // defaults are where the CMS writes when it runs from cms/ in dev.
+      CMS_DATABASE: envField.string({ context: 'server', access: 'secret', default: 'cms/data/cms.db' }),
+      CMS_UPLOADS: envField.string({ context: 'server', access: 'secret', default: 'cms/data/uploads' }),
+      // Shared with the CMS, which signs its preview links with it. Unset: no previews.
+      PREVIEW_SECRET: envField.string({ context: 'server', access: 'secret', optional: true }),
     },
   },
   // The plates are heavy; having the next page's HTML in hand before the click

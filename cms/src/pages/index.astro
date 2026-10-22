@@ -1,0 +1,59 @@
+---
+/**
+ * A projektek listája, abban a sorrendben, ahogy a portfólió falán állnak:
+ * a kiemelt elöl, utána a legfrissebb dátum. A piszkozatok a végén.
+ */
+import Layout from "../layouts/Layout.astro";
+import { listProjects } from "../lib/projects";
+import { STATUS_LABEL } from "../lib/editor/shared";
+
+const items = listProjects();
+const dateFmt = new Intl.DateTimeFormat("hu-HU", { dateStyle: "medium", timeZone: "Europe/Budapest" });
+---
+
+<Layout title="Projektek">
+    <a slot="actions" href="/uj" class="admin-btn">+ Új projekt</a>
+    {
+        items.length === 0 ? (
+            <div class="admin-card p-8 text-center">
+                <p class="mb-4 text-admin-muted">Még nincs egyetlen projekt sem.</p>
+                <a href="/uj" class="admin-btn">Új projekt</a>
+            </div>
+        ) : (
+            <div class="admin-card overflow-hidden">
+                <p class="border-b border-admin-border px-5 py-3 text-sm text-admin-muted">
+                    {items.length} projekt · a publikáltak a falon látható sorrendben
+                </p>
+                <ul class="divide-y divide-admin-border">
+                    {items.map((p) => (
+                        <li>
+                            <a href={`/szerkesztes/${p.id}`} class="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5 transition hover:bg-admin-raised">
+                                <span class="flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-admin-raised">
+                                    {p.cover && <img src={p.cover} alt="" class="h-full w-full object-cover" loading="lazy" />}
+                                </span>
+                                <div class="min-w-0 flex-1 basis-56">
+                                    <p class:list={["truncate font-medium", !p.title && "text-admin-muted italic"]}>
+                                        {p.featured && <span class="text-accent" title="Kiemelt">★ </span>}
+                                        {p.title || "(cím nélkül)"}
+                                    </p>
+                                    <p class="truncate font-mono text-xs text-admin-muted">/projects/{p.slug}</p>
+                                </div>
+                                <span class="flex gap-1">
+                                    {p.langs.map((l) => (
+                                        <span class="rounded bg-admin-raised px-1.5 py-0.5 font-mono text-xs uppercase">{l}</span>
+                                    ))}
+                                </span>
+                                <span class:list={["rounded-full px-2.5 py-1 text-xs font-medium", p.status === "published" ? "bg-accent/15 text-accent" : "bg-admin-raised text-admin-muted"]}>
+                                    {STATUS_LABEL[p.status]}
+                                </span>
+                                <span class="w-36 text-right text-xs text-admin-muted">
+                                    {p.status === "draft" ? `módosítva: ${dateFmt.format(p.updatedAt)}` : p.publishedAt ? dateFmt.format(p.publishedAt) : ""}
+                                </span>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        )
+    }
+</Layout>

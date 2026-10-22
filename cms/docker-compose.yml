@@ -1,48 +1,31 @@
-# Ghost a portfólió tartalmához. A projektek innen jönnek, nem a kódból: a
-# portfólió szervere kérésenként olvassa őket, így egy publikált poszt azonnal kint van.
+# A portfólió saját CMS-e. A projektek innen jönnek, nem a kódból: a portfólió
+# szervere kérésenként ugyanabból az SQLite-ból olvas, így egy publikált
+# projekt azonnal kint van.
 # A gyökér docker-compose.yml include-olja, onnan indítsd: docker compose up -d
-# A titkok a cms/.env fájlból jönnek (nincs verziókövetve) — cms/.env.example a minta.
+# A beállítások a cms/.env fájlból jönnek (nincs verziókövetve) — cms/.env.example a minta.
 # Ugyanaz a projektnév, mint a gyökérben: így a cms/ mappából indítva is ugyanazt
 # a projektet kezeli, és nem ütközik a saját konténereivel.
 name: portfolio
 services:
-  ghost-db:
-    image: mysql:8.4
-    container_name: portfolio-cms-db
-    restart: unless-stopped
-    volumes:
-      - ./data/mysql:/var/lib/mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: ${GHOST_DB_ROOT_PASSWORD:?add GHOST_DB_ROOT_PASSWORD to cms/.env}
-      MYSQL_DATABASE: ghost
-      MYSQL_USER: ghost
-      MYSQL_PASSWORD: ${GHOST_DB_PASSWORD:?add GHOST_DB_PASSWORD to cms/.env}
-    healthcheck:
-      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -u ghost -p"$$MYSQL_PASSWORD" --silent']
-      interval: 5s
-      timeout: 5s
-      retries: 30
-
-  ghost:
-    image: ghost:6-alpine
+  cms:
+    build: .
+    image: portfolio-cms:latest
     container_name: portfolio-cms
     restart: unless-stopped
+    # Belépés nincs: a port kötése dönti el, ki éri el. Élesben a Tailscale-cím.
     ports:
-      - '${GHOST_PORT:-2368}:2368'
+      - '${CMS_BIND:-127.0.0.1}:${CMS_PORT:-2368}:2368'
     volumes:
-      - ./data/content:/var/lib/ghost/content
-    depends_on:
-      ghost-db:
-        condition: service_healthy
-    environment:
-      # Az a cím, ahol az admint böngészőből nyitod. A Ghost erre irányít át.
-      url: ${GHOST_PUBLIC_URL:-http://localhost:2368}
-      database__client: mysql
-      database__connection__host: ghost-db
-      database__connection__user: ghost
-      database__connection__password: ${GHOST_DB_PASSWORD}
-      database__connection__database: ghost
-      # Levelezés nincs beállítva, így az új eszközről való belépés e-mailes
-      # megerősítése sem működhetne. Az admin úgyis csak VPN-ről érhető el.
-      security__staffDeviceVerification: 'false'
+      - cms-data:/data
+    # CMS_URL, PORTFOLIO_URL, PREVIEW_SECRET. Nélküle is indul (localhost, előnézet nélkül).
+    env_file:
+      - path: ./.env
+        required: false
+    mem_limit: 256m
 
+volumes:
+  # Az adatbázis (cms.db) és a feltöltött képek (uploads/). MENTENI KELL.
+  # Docker volume, nem bind mount: a CMS és a portfólió egyszerre használja
+  # az SQLite-ot, és a macOS-es Docker Desktop megosztott mappáján a WAL
+  # zárolása nem megbízható.
+  cms-data:

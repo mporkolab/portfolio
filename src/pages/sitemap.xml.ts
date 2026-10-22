@@ -4,7 +4,7 @@ import { languages, path } from '../i18n/ui';
 import { absolute } from '../lib/seo';
 
 /**
- * Rendered on request, like the wall: a project published in Ghost is in the
+ * Rendered on request, like the wall: a project published in the CMS is in the
  * sitemap at once. Every page is listed with its pair in the other language,
  * which is how a search engine learns the two belong together.
  */
