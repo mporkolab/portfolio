@@ -1,6 +1,7 @@
 /**
- * Everything shown on the wall. The projects themselves live in the CMS (see
- * `cms.ts`); this module only shapes them for the wall's geometry.
+ * The projects, as the pages import them. They live in the CMS (see
+ * `cms.ts`); the paging below only survives to redirect the old wall's
+ * /projects/page/<n> addresses.
  */
 
 export { getProjects, getPreview, copyFor, assetUrl, shareImageUrl } from './cms';

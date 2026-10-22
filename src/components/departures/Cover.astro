@@ -1,0 +1,69 @@
+---
+/**
+ * A project's cover from the CMS, or nothing to look at: a placeholder is
+ * never passed off as a screenshot. A logo is shown whole on the dark ground
+ * instead of cropped to fill.
+ */
+interface Props {
+  label: string;
+  src?: string;
+  logo?: boolean;
+  /** The above-the-fold image of a page loads at once. */
+  eager?: boolean;
+  class?: string;
+}
+const { label, src, logo = false, eager = false, class: className } = Astro.props;
+---
+
+<div class:list={['cover', logo && 'cover--logo', className]}>
+  {
+    src ? (
+      <img src={src} alt={label} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : undefined} decoding="async" />
+    ) : (
+      <span class="cover__none" aria-hidden="true">
+        {label}
+      </span>
+    )
+  }
+</div>
+
+<style>
+  .cover {
+    position: relative;
+    overflow: hidden;
+    background: var(--paper-3);
+  }
+
+  .cover img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .cover--logo {
+    background: var(--surface);
+  }
+
+  .cover--logo img {
+    object-fit: contain;
+    padding: 8%;
+  }
+
+  .cover__none {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 12px;
+    background: repeating-linear-gradient(-45deg, transparent 0 10px, rgb(20 20 20 / 0.06) 10px 12px);
+    color: var(--ink-muted);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+</style>

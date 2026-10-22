@@ -1,0 +1,59 @@
+---
+import { languages, path, here, t, type Lang } from '../../i18n/ui';
+
+/** The same page in the other language: /about ⇄ /hu/about. Plain links. */
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const page = here(Astro.url.pathname);
+---
+
+<nav class="langs" aria-label={t(lang)('lang.label')}>
+  {
+    languages.map((l) => (
+      <a
+        href={path(l, page)}
+        hreflang={l}
+        lang={l}
+        aria-current={l === lang ? 'true' : undefined}
+        class:list={['langs__pick', l === lang && 'is-on']}
+      >
+        {l.toUpperCase()}
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .langs {
+    display: inline-flex;
+    padding: 3px;
+    gap: 3px;
+    border: 1px solid var(--line-2);
+    border-radius: 4px;
+  }
+
+  .langs__pick {
+    display: inline-grid;
+    place-items: center;
+    min-width: 44px;
+    min-height: 38px;
+    padding: 0 10px;
+    border-radius: 2px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-decoration: none;
+  }
+
+  .langs__pick:hover {
+    color: var(--text);
+  }
+
+  .langs__pick.is-on {
+    background: var(--amber);
+    color: var(--ink);
+  }
+</style>

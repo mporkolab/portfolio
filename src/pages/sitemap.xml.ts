@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getProjects, projectPages } from '../lib/projects';
+import { getProjects } from '../lib/projects';
 import { languages, path } from '../i18n/ui';
 import { absolute } from '../lib/seo';
 
@@ -13,8 +13,6 @@ export const GET: APIRoute = async () => {
 
   // The fixed pages are worth listing even while the CMS is down.
   try {
-    const wall = await projectPages();
-    for (let n = 2; n <= wall.length; n++) pages.push(`/projects/page/${n}`);
     for (const p of await getProjects()) pages.push(`/projects/${p.slug}`);
   } catch (err) {
     console.warn(String(err));

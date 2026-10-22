@@ -1,0 +1,69 @@
+---
+/** The full-width way on at the foot of a page: "Next gate — A2 Projects →". */
+interface Props {
+  href: string;
+  /** The small line on the left: "Next gate", "Next flight". */
+  label: string;
+  /** In amber before the name: A2, EDO-02. */
+  code: string;
+  name: string;
+}
+const { href, label, code, name } = Astro.props;
+---
+
+<a href={href} class="next">
+  <span class="wrap next__row">
+    <span class="label">{label}</span>
+    <span class="next__name display">
+      <span class="next__code">{code}</span>
+      {name}
+      <span class="next__arrow" aria-hidden="true">→</span>
+    </span>
+  </span>
+</a>
+
+<style>
+  .next {
+    display: block;
+    margin-top: clamp(48px, 8vw, 96px);
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+    transition: background 160ms ease;
+  }
+
+  .next:hover {
+    background: var(--surface-2);
+  }
+
+  .next__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 24px;
+    padding-block: clamp(24px, 4vw, 44px);
+  }
+
+  .next__name {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.35em;
+    font-size: clamp(36px, 6vw, 72px);
+  }
+
+  .next__code {
+    color: var(--amber);
+  }
+
+  .next__arrow {
+    color: var(--amber);
+    transition: transform 160ms ease;
+  }
+
+  .next:hover .next__arrow {
+    transform: translateX(8px);
+  }
+</style>

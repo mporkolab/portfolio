@@ -36,19 +36,28 @@ export default defineConfig({
     prefetchAll: true,
     defaultStrategy: 'viewport',
   },
-  // Inter is downloaded at build time and served from the site itself: no
+  // The fonts are downloaded at build time and served from the site itself: no
   // request to Google from the visitor's browser (nothing for GDPR to object
   // to), and no render-blocking stylesheet from another origin. latin-ext
-  // carries ő and ű.
+  // carries ő and ű — the flaps spell PORKOLÁB in it.
   fonts: [
     {
       provider: fontProviders.fontsource(),
-      name: 'Inter',
-      cssVariable: '--font-inter',
-      weights: [400, 600, 700, 900],
+      name: 'Big Shoulders Display',
+      cssVariable: '--font-display',
+      weights: [500, 700, 900],
       styles: ['normal'],
       subsets: ['latin', 'latin-ext'],
-      fallbacks: ['system-ui', 'sans-serif'],
+      fallbacks: ['Impact', 'Arial Narrow', 'sans-serif'],
+    },
+    {
+      provider: fontProviders.fontsource(),
+      name: 'IBM Plex Mono',
+      cssVariable: '--font-mono',
+      weights: [400, 500, 600],
+      styles: ['normal', 'italic'],
+      subsets: ['latin', 'latin-ext'],
+      fallbacks: ['ui-monospace', 'Menlo', 'monospace'],
     },
   ],
   vite: {

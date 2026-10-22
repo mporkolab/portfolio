@@ -1,0 +1,150 @@
+---
+import SplitFlap from './SplitFlap.astro';
+
+/**
+ * A departures board: one row per destination, each row a link. The cells are
+ * flaps of fixed length, so the columns line up without a table; the row's
+ * aria-label says in words what the flaps spell. Wider than a phone on
+ * purpose — the board scrolls inside its own box, the page never does.
+ */
+export interface BoardCell {
+  text: string;
+  length: number;
+  color?: 'text' | 'amber' | 'green';
+}
+
+export interface BoardRow {
+  href: string;
+  cells: BoardCell[];
+  ariaLabel: string;
+  /** Dimmed: a departure that is only scheduled. */
+  faint?: boolean;
+}
+
+interface Props {
+  title: string;
+  columns: string[];
+  rows: BoardRow[];
+  /** ms between one row starting to spin and the next. */
+  stagger?: number;
+}
+const { title, columns, rows, stagger = 270 } = Astro.props;
+
+// The columns are as wide as the widest row's flaps. A cell is sized so the
+// whole row fits the board where it can (30px at most), and never below 22px:
+// past that the board scrolls instead.
+const lengths = columns.map((_, i) => Math.max(...rows.map((r) => r.cells[i]?.length ?? 0)));
+const cells = lengths.reduce((a, b) => a + b, 0);
+const template = `${lengths.map((n) => `calc(${n} * (var(--cell) + 3px))`).join(' ')} 1fr`;
+const id = `board-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<section class="board">
+  <h2 class="board__title label" id={id}>{title}</h2>
+  <div class="board__scroll" tabindex="0" role="region" aria-labelledby={id}>
+    <div class="board__inner" style={`--cols:${template};--n:${cells};--k:${columns.length}`}>
+      <div class="board__head" aria-hidden="true">
+        {columns.map((c) => <span class="label">{c}</span>)}
+        <span />
+      </div>
+      <ul class="board__rows">
+        {
+          rows.map((row, r) => (
+            <li>
+              <a href={row.href} class:list={['board__row', row.faint && 'is-faint']} aria-label={row.ariaLabel}>
+                {row.cells.map((cell, c) => (
+                  <SplitFlap text={cell.text} length={cell.length} color={cell.color} size="md" delay={r * stagger + c * 120} decorative />
+                ))}
+                <span class="board__go" aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .board {
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-board);
+    background: var(--surface);
+  }
+
+  .board__title {
+    margin: 0 0 16px;
+  }
+
+  .board__scroll {
+    container-type: inline-size;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-color: var(--line-2) transparent;
+  }
+
+  .board__inner {
+    /* Room taken by everything but the cells: row padding, column gaps, arrow. */
+    --cell: clamp(22px, calc((100cqw - 32px - var(--k) * 20px - 30px) / var(--n) - 3px), 30px);
+    width: max-content;
+    min-width: max(100%, 1040px);
+  }
+
+  .board__head,
+  .board__row {
+    display: grid;
+    grid-template-columns: var(--cols);
+    align-items: center;
+    column-gap: 20px;
+  }
+
+  .board__head {
+    padding: 0 16px 10px;
+  }
+
+  .board__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .board__row {
+    padding: 10px 16px;
+    border-radius: 4px;
+    background: var(--bg);
+    color: inherit;
+    text-decoration: none;
+    transition: background 140ms ease;
+  }
+
+  .board__row:hover {
+    background: var(--surface-2);
+  }
+
+  .board__row.is-faint {
+    opacity: 0.75;
+  }
+
+  .board__go {
+    justify-self: end;
+    color: var(--amber);
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 700;
+    transition: transform 140ms ease;
+  }
+
+  .board__row:hover .board__go {
+    transform: translateX(6px);
+  }
+
+  @media (max-width: 639px) {
+    .board {
+      padding: 14px;
+    }
+  }
+</style>

@@ -1,0 +1,77 @@
+---
+import SplitFlap from './SplitFlap.astro';
+import { t, type Lang } from '../../i18n/ui';
+
+/**
+ * The time where the work is made, which is Budapest — a departures board
+ * shows local time, not UTC. Minute resolution; the changed digits turn over.
+ * Pages are prerendered, so the server cannot know the time: it ships --:--
+ * and the script fills it in.
+ */
+interface Props {
+  lang: Lang;
+  /** Flaps, or a plain line of text. */
+  plain?: boolean;
+  class?: string;
+}
+const { lang, plain = false, class: className } = Astro.props;
+const tr = t(lang);
+---
+
+<span class:list={['clock', className]} role="timer" aria-label={tr('clock.label')}>
+  <span class="clock__zone" aria-hidden="true">BUD</span>
+  {
+    plain ? (
+      <time class="clock__plain" data-clock-plain>--:--</time>
+    ) : (
+      <SplitFlap text="--:--" size="sm" color="amber" manual data-clock="" />
+    )
+  }
+</span>
+
+<script>
+  import { setFlapText } from '../../lib/flap-client';
+
+  const inBudapest = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Budapest',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+
+  const tick = () => {
+    const time = inBudapest.format(new Date());
+    document.querySelectorAll<HTMLElement>('[data-clock]').forEach((flap) => {
+      if (flap.querySelector('.flap__text')?.textContent !== time) setFlapText(flap, time);
+    });
+    document.querySelectorAll<HTMLTimeElement>('[data-clock-plain]').forEach((el) => {
+      el.textContent = time;
+      el.dateTime = time;
+    });
+  };
+
+  // Module scripts run once per full load, so the clock is re-bound to each
+  // new document on a client-side navigation; the interval keeps running.
+  setInterval(tick, 15_000);
+  document.addEventListener('astro:page-load', tick);
+</script>
+
+<style>
+  .clock {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .clock__zone {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+
+  .clock__plain {
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+</style>

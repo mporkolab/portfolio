@@ -1,0 +1,67 @@
+---
+import { links, t, type Lang } from '../../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const tr = t(lang);
+---
+
+<footer class="site-footer">
+  <div class="wrap site-footer__row">
+    <p class="site-footer__copy">© {new Date().getFullYear()} Porkoláb Martin · BUD</p>
+    <div class="site-footer__links">
+      <span class="label">{tr('footer.connecting')}</span>
+      <a href={links.github} target="_blank" rel="noopener noreferrer">{tr('footer.gh')} <span aria-hidden="true">↗</span></a>
+      <a href={links.linkedin} target="_blank" rel="noopener noreferrer">{tr('footer.li')} <span aria-hidden="true">↗</span></a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .site-footer__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    padding-block: 20px;
+  }
+
+  .site-footer__copy {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+  }
+
+  .site-footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 20px;
+  }
+
+  .site-footer__links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .site-footer__links a:hover {
+    color: var(--amber);
+  }
+</style>

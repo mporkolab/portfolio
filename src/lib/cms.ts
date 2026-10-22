@@ -19,7 +19,8 @@
  *   cover image          → thumbnail; "the image is a logo" shows it whole
  *   live site            → a project with one is "live"
  *   stack                → comma-separated, shown as "A · B"
- *   featured (★), date   → the order: featured first, then the newest
+ *   featured (★), date   → the order: featured first, then the newest; the
+ *                          first featured one is the home page's project
  *
  * A language whose title is empty is not written yet; the project then shows
  * the other one in both languages.
@@ -66,6 +67,8 @@ export interface Project {
   thumbnail_is_logo: boolean;
   live_url: string | null;
   stack: string | null;
+  /** Starred in the CMS: the first such project is the one the home page boards. */
+  featured: boolean;
   /** At least one of the two is there; the other language falls back to it. */
   copy: { en: ProjectCopy | null; hu: ProjectCopy | null };
 }
@@ -116,6 +119,7 @@ interface ProjectRow {
   slug: string;
   live_url: string | null;
   stack: string;
+  featured: number;
   cover_is_logo: number;
   image_path: string | null;
   image_width: number | null;
@@ -133,7 +137,7 @@ interface CopyRow {
 }
 
 const PROJECT_COLUMNS = `
-  p.id, p.slug, p.live_url, p.stack, p.cover_is_logo,
+  p.id, p.slug, p.live_url, p.stack, p.featured, p.cover_is_logo,
   i.path AS image_path, i.width AS image_width, i.share_ext AS image_share
   FROM projects p LEFT JOIN images i ON i.id = p.cover_image_id`;
 
@@ -197,6 +201,7 @@ function toProjects(rows: ProjectRow[]): Project[] {
           .map((s) => s.trim())
           .filter(Boolean)
           .join(' · ') || null,
+      featured: !!r.featured,
       copy: { en, hu },
     });
   }
