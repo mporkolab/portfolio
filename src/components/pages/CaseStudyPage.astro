@@ -145,10 +145,19 @@ const cover = project.thumbnail ? assetUrl(project.thumbnail, 1280) : undefined;
 </Page>
 
 <style>
+  /* A case study is read, not scanned: one centred column, the width of a
+     comfortable line of mono text. */
   .case {
+    max-width: calc(800px + 2 * var(--gutter));
     display: flex;
     flex-direction: column;
     gap: clamp(20px, 3vw, 32px);
+  }
+
+  /* The title's flaps sized to the column: a nine-letter word still fits. */
+  .case :global(.flap--lg) {
+    --w: clamp(24px, 7.6vw, 80px);
+    --fs: clamp(21px, 6.8vw, 72px);
   }
 
   .case__status {
@@ -250,17 +259,17 @@ const cover = project.thumbnail ? assetUrl(project.thumbnail, 1280) : undefined;
     flex-direction: column;
   }
 
+  /* The leg's number and heading above its text, not beside it: beside, a
+     story without <h2>s left a column of nothing on the left. */
   .leg {
     display: flex;
-    flex-wrap: wrap;
-    gap: 16px clamp(24px, 4vw, 56px);
+    flex-direction: column;
+    gap: 18px;
     padding-block: clamp(28px, 4vw, 48px);
     border-top: 1px solid var(--line);
   }
 
   .leg__side {
-    flex: 1 1 260px;
-    max-width: 380px;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -285,10 +294,11 @@ const cover = project.thumbnail ? assetUrl(project.thumbnail, 1280) : undefined;
   }
 
   .leg__body {
-    flex: 999 1 420px;
     min-width: 0;
-    padding-left: clamp(16px, 3vw, 32px);
-    border-left: 1px dashed var(--line-2);
+  }
+
+  .leg__body.story {
+    max-width: none;
   }
 
   .case__note {
